@@ -4,11 +4,11 @@
 
 Live Debug
 
-~container:start
+    ~container:start
 
 Build stand alone
 
-sbt assembly
+    sbt assembly
 
 
 
