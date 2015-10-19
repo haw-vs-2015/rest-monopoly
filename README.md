@@ -1,5 +1,7 @@
 # rest-monopoly #
 
+rest - http://scalatra.org/
+
 ## Build & Run ##
 
 Live Debug
