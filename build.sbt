@@ -1,4 +1,4 @@
-assemblyJarName in assembly := name.value + ".jar"
+assemblyJarName in assembly := "vsp_abh928" + ".jar"
 
 organization := "de.vs.rest.server"
 
@@ -22,7 +22,6 @@ libraryDependencies ++= Seq(
   "org.scalatra"            %% "scalatra-swagger"               % "2.3.0.RC3",
   "org.scalatra"            %% "scalatra-swagger-ext"           % "2.3.0.RC3",
   "org.scalatra"            %% "scalatra-slf4j"                 % "2.3.0.RC3",
-  "de.vs.rmi.client.dice"   %% "rmi-client-dice" % "1.0",
   "org.json4s"              %% "json4s-jackson"                 % "3.2.10",
   "org.json4s"              %% "json4s-ext"                     % "3.2.10",
   "commons-codec"            % "commons-codec"                  % "1.7",

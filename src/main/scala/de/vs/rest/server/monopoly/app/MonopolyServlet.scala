@@ -7,7 +7,7 @@ import org.json4s._
 import org.json4s.JsonDSL._
 import org.scalatra.json.{ JValueResult, JacksonJsonSupport }
 
-import de.vs.rmi.client.dice.Dice
+import de.vs.monopoly.Dice
 
 class MonopolyServlet extends ScalatraServlet with ScalateSupport with JacksonJsonSupport {
 
