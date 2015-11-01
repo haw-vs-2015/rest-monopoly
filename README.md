@@ -22,9 +22,9 @@ Build stand alone
 3. Wie Spieler Timeout erkennen.
 
 # Quellen #
-[https://github.com/scalatra/scalatra/blob/develop/core/src/main/scala/org/scalatra/ActionResult.scala]
+[https://github.com/scalatra/scalatra/blob/develop/core/src/main/scala/org/scalatra/ActionResult.scala](Responce Code Objects)
+[http://www.scalatra.org/2.4/guides/http/actions.html](Parameters example)
 [http://www.scalatra.org/2.4/guides/http/routes.html]
-[http://www.scalatra.org/2.4/guides/http/actions.html]
 
 
 
