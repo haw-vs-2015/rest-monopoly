@@ -4,9 +4,9 @@ rest - http://scalatra.org/
 
 ## Build & Run ##
 
-Live Debug
+Live Debug (set custom port in build.sbt "port in container.Configuration := 4567")
 
-    ~container:start
+    sbt ~container:start
 
 Build stand alone
 

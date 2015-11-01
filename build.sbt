@@ -14,6 +14,8 @@ scalaVersion := "2.11.2"
 
 scalacOptions += "-language:postfixOps"
 
+port in container.Configuration := 1234
+
 libraryDependencies ++= Seq(
   "org.scalatest"           %% "scalatest"                      % "2.2.1"               % "test",
   "org.scalatra"            %% "scalatra"                       % "2.3.0.RC3",
