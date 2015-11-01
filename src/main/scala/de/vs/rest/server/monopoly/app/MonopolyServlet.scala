@@ -8,6 +8,7 @@ import org.json4s.JsonDSL._
 import org.scalatra.json.{ JValueResult, JacksonJsonSupport }
 
 import de.vs.monopoly.Dice
+import de.vs.monopoly.Games
 
 class MonopolyServlet extends ScalatraServlet with ScalateSupport with JacksonJsonSupport {
 
@@ -20,7 +21,25 @@ class MonopolyServlet extends ScalatraServlet with ScalateSupport with JacksonJs
 
   //Gives you a single dice roll
   get("/dice") {
-    Dice().roll()
+    Dice() roll
   }
 
+  //Gives you a List of all Games
+  get("/games") {
+    Games()
+  }
+  
+  //Creates a new Game
+  post("/games") {
+    Created( Games createNewGame )
+  }
+  
+  //Creates a new Game
+  get("/games/:gameid") {
+    Games getGame(params("gameid")) match {
+      case Some(game) => game
+      case None => //Gibts nicht?
+    }
+  }
+  
 }
