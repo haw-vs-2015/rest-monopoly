@@ -12,7 +12,19 @@ object Games { //GamesFacade
   def id(): Int = { _id += 1; _id }
 
   def createNewGame(): Game = {
-    var game = Game()
+    
+    //Init Components //Generate Components fehlt
+    val _game = ""
+    val dice = ""
+    val board = ""
+    val bank = ""
+    val broker = ""
+    val decks = ""
+    val events = ""
+    val _components = Components(_game, dice, board, bank, broker, decks, events)
+    
+    
+    var game = Game( components = _components )
     games += (game.gameid -> game)
     game
   }
@@ -24,7 +36,11 @@ object Games { //GamesFacade
   def apply() = new Games(games) //getGames
 }
 
+
+case class Components(game:String, dice:String, board:String, bank:String, broker:String, decks:String, events:String)
 case class Games(games: Map[String, Game])
-case class Game(gameid: String = Games.id.toString, players: List[Player] = List(), started: Boolean = false) {
+
+//get /boards wieso enthält ein Game kein ready und players?
+case class Game(gameid: String = Games.id.toString, players: List[Player] = List(), components:Components, started: Boolean = false) {
 
 }

@@ -1,7 +1,7 @@
 package de.vs.monopoly
 
 
-
-case class Player(id:String, name:String, uri:String, ready:Boolean) {
+//Wieso steht bei dem example /games/{gameid}/players keine position und place dabei? 
+case class Player(id:String, name:String, uri:String, place:Place, position:Int, ready:Boolean) {
   
 }
