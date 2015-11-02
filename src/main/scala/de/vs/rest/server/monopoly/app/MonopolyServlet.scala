@@ -9,6 +9,7 @@ import org.scalatra.json.{ JValueResult, JacksonJsonSupport }
 
 import de.vs.monopoly.Dice
 import de.vs.monopoly.Games
+import de.vs.monopoly.Decks
 
 class MonopolyServlet extends ScalatraServlet with ScalateSupport with JacksonJsonSupport {
 
@@ -42,4 +43,21 @@ class MonopolyServlet extends ScalatraServlet with ScalateSupport with JacksonJs
     }
   }
   
+  //Muss irgendwie mit game(s) verbunden werden.. Ein game hat Decks, wo steht das in der api?
+    //get a chance
+    get("/games/:gameid/chance") {
+      Decks chance() match {
+        case Some(card) => card
+        case None => //Gibts nicht?
+      }
+    }
+  
+  
+    //get a community
+    get("/games/:gameid/community") {
+      Decks community() match {
+        case Some(card) => card
+        case None => //Gibts nicht?
+      }
+  }
 }
