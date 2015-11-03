@@ -42,5 +42,5 @@ case class Games(games: Map[String, Game])
 
 //get /boards wieso enthält ein Game kein ready und players?
 case class Game(gameid: String = Games.id.toString, players: List[Player] = List(), components:Components, started: Boolean = false) {
-
+  override def toString() = "{ \"gameid\":" + "\"" + gameid + "\"" + "}" //Muell
 }
