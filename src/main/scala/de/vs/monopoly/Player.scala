@@ -1,7 +1,14 @@
 package de.vs.monopoly
 
+object Players {
+  
+  //variables
+  var _id = 0
 
-//Wieso steht bei dem example /games/{gameid}/players keine position und place dabei? 
-case class Player(id:String, name:String, uri:String, place:Place, position:Int, ready:Boolean) {
+  //methods
+  def id(): String = { _id += 1; _id.toString }
   
 }
+
+//Wieso steht bei dem example /games/{gameid}/players keine position und place dabei? 
+case class Player(id: String, name: String, uri: String, place: Place = Place(), var position: Int = 0, var ready: Boolean = false)

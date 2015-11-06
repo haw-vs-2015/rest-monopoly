@@ -23,7 +23,7 @@ class MonopolyServlet extends ScalatraServlet with ScalateSupport with JacksonJs
     contentType = formats("json")
     response.headers += ("Access-Control-Allow-Origin" -> "*")
   }
-  
+
   //DICE
   //Gives you a single dice roll
   get("/dice") {
@@ -49,6 +49,57 @@ class MonopolyServlet extends ScalatraServlet with ScalateSupport with JacksonJs
     }
   }
 
+  //get all players
+  get("/games/:gameid/players") {
+    Games getGame (params("gameid")) match {
+      case Some(game) => game.players
+      case None => //Gibts nicht?
+    }
+  }
+
+  //get player
+  get("/games/:gameid/players/:playerid") {
+    Games getGame (params("gameid")) match {
+      case Some(game) =>
+        game.players.find { x => x.id == params("playerid") } match {
+          case Some(player) => player
+          case None => //Gibts nicht?
+        }
+
+      case None => //Gibts nicht?
+    }
+  }
+
+  //put player to game(join game)
+  delete("/games/:gameid/players/:playerid") {
+    Games joinGame (params("gameid"), params("playerid"))
+  }
+  
+  //remove player
+  delete("/games/:gameid/players/:playerid") {
+    Games removePlayer (params("gameid"), params("playerid"))
+  }
+  
+  //is player ready
+  get("/games/:gameid/players/:playerid/ready") {
+    Games isPlayerReady (params("gameid"), params("playerid"))
+  }
+
+  //set player "ready status"
+  put("/games/:gameid/players/:playerid/ready") {
+    Games setPlayerReady (params("gameid"), params("playerid"))
+  }
+  
+  //get player of current turn
+  get("/games/:gameid/players/current") {
+    Games getCurrentPlayer (params("gameid")) match {
+      case Some(player) => player
+      case None => None
+    }
+  }
+  
+  
+  
   //BOARDS
   get("/boards") {
     Boards()
@@ -60,11 +111,11 @@ class MonopolyServlet extends ScalatraServlet with ScalateSupport with JacksonJs
       case None => //Gibts nicht?
     }
   }
-  
+
   put("/boards/{gameid}") {
     Boards.addBoard(params("gameid"))
   }
-  
+
   delete("/boards/{gameid}") {
     Boards.deleteBoard(params("gameid"))
   }
@@ -75,7 +126,7 @@ class MonopolyServlet extends ScalatraServlet with ScalateSupport with JacksonJs
     params("playerid")
     Boards.rolled(parsedBody.extract[Throw])
   }
-  
+
   get("/boards/{gameid}/players") {
     Boards.getPlayers(params("gameid"))
   }

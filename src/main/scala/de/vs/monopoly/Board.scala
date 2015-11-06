@@ -1,5 +1,16 @@
 package de.vs.monopoly
 
+//object Places {
+//  val placesConf = List[Place](
+//      
+//      Place("VINE STREET", "BROWN", 15),
+//      Place("COMMUNITY CHEST", "BROWN", 15),
+//      Place("CONVENTRY STREET", "BROWN", 15),
+//      Place("COMMUNITY CHEST"),
+//  
+//  )
+//}
+
 object Boards {
 
   var boards: Map[String, Board] = Map()
@@ -39,7 +50,7 @@ case class Board(fields: List[Field])
 
 //get /boards/{gameid} was soll das mit dem place und wieso ist da noch ein name
 case class Field(place: Place, players: List[Player])
-case class Place(name: String)
+case class Place(name: String="")
 
 case class Throw(roll1: Roll, roll2: Roll)
 
