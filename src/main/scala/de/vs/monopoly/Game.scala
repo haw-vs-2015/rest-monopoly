@@ -42,7 +42,7 @@ object Games { //GamesFacade
   def removePlayer(gameid: String, playerid: String) {
     getGame(gameid) match {
       case Some(game) => game.players -= game.players.filter { x => x.id == playerid }.head
-      case None => 
+      case None =>
     }
   }
 
@@ -76,10 +76,32 @@ object Games { //GamesFacade
     }
   }
 
-  def getMutex(gameid: String): Mutex = {
+  def getMutex(gameid: String): Option[String] = {
     getGame(gameid) match {
-      case Some(game) => game.mutex
-      case None => Mutex()
+      case Some(game) => Some(game.mutex)
+      case None => None
+    }
+  }
+
+  def setMutex(gameid: String, playerid: String): String = {
+    getGame(gameid) match {
+      case Some(game) =>
+        if (playerid == game.mutex) {
+          "200"
+        } else if (playerid == "") {
+          game.mutex = playerid
+          "201"
+        } else {
+          "409"
+        }
+      case None => ""
+    }
+  }
+
+  def resetMutex(gameid: String) {
+    getGame(gameid) match {
+      case Some(game) => game.mutex = ""        
+      case None => 
     }
   }
 
@@ -88,8 +110,8 @@ object Games { //GamesFacade
 
 case class Components(game: String, dice: String, board: String, bank: String, broker: String, decks: String, events: String)
 case class Games(games: Map[String, Game])
-case class Mutex(playerid: Int = 0)
+
 //get /boards wieso enthält ein Game kein ready und players?
-case class Game(gameid: String = Games.id().toString, players: ListBuffer[Player] = ListBuffer(), components: Components, started: Boolean = false, mutex: Mutex = Mutex()) {
+case class Game(gameid: String = Games.id().toString, players: ListBuffer[Player] = ListBuffer(), components: Components, started: Boolean = false, var mutex: String = "") {
   override def toString() = "{ \"gameid\":" + "\"" + gameid + "\"" + "}" //Muell
 }

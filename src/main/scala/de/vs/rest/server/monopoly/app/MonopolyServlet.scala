@@ -74,12 +74,12 @@ class MonopolyServlet extends ScalatraServlet with ScalateSupport with JacksonJs
   delete("/games/:gameid/players/:playerid") {
     Games joinGame (params("gameid"), params("playerid"))
   }
-  
+
   //remove player
   delete("/games/:gameid/players/:playerid") {
     Games removePlayer (params("gameid"), params("playerid"))
   }
-  
+
   //is player ready
   get("/games/:gameid/players/:playerid/ready") {
     Games isPlayerReady (params("gameid"), params("playerid"))
@@ -89,17 +89,39 @@ class MonopolyServlet extends ScalatraServlet with ScalateSupport with JacksonJs
   put("/games/:gameid/players/:playerid/ready") {
     Games setPlayerReady (params("gameid"), params("playerid"))
   }
-  
+
   //get player of current turn
   get("/games/:gameid/players/current") {
     Games getCurrentPlayer (params("gameid")) match {
       case Some(player) => player
-      case None => None
+      case None => //Gibts nicht?
     }
   }
-  
-  
-  
+
+  //gets the player holding the mutex
+  get("/games/:gameid/players/turn") {
+    Games getMutex (params("gameid")) match {
+      case Some(player) => player
+      case None => //Gibts nicht?
+    }
+  }
+
+  //Nur nicht nur die Player id uebergeben? id muss noch aus body geholt werden.
+  //put tries to aquire the turn mutex
+  put("/games/:gameid/players/turn") {
+    
+    Games setMutex (params("gameid"), params("playerid")) match {
+      case "200" => Ok()
+      case "201" => Created()
+      case "409" => Gone()
+    }
+  }
+
+  //delete the mutex
+  delete("/games/:gameid/players/turn") {
+    Games setMutex (params("gameid"), params("playerid"))
+  }
+
   //BOARDS
   get("/boards") {
     Boards()
