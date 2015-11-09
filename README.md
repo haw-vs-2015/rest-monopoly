@@ -20,6 +20,9 @@ Build stand alone
 1. Joint der Spieler automatisch wenn er ein Game erzeugt?
 2. Was soll das mit dem Services? Seite geht nicht auf...
 3. Wie Spieler Timeout erkennen.
+4. Die id des spielers sollte fortlaufend sein, da andere Games des selben Spielernamen haben könnten?
+5. Wozu id lowerCase und name uppercase?
+6. Wird die uri des Spielers mitgegeben damit er erreichbar ist? Also anstatt localhost fügt der Spieler seine IP hinzu?.
 
 # Quellen #
 
