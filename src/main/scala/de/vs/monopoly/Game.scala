@@ -23,7 +23,7 @@ object Games { //GamesFacade
     val events = ""
     val _components = Components(_game, dice, board, bank, broker, decks, events)
 
-    var game = Game(components = _components)
+    var game = Game()
     games += (game.gameid -> game)
     game
   }
@@ -101,7 +101,7 @@ object Games { //GamesFacade
   def resetMutex(gameid: String) {
     getGame(gameid) match {
       case Some(game) => game.mutex = ""        
-      case None => 
+      case None => //Gibt es nicht?
     }
   }
 
@@ -112,6 +112,6 @@ case class Components(game: String, dice: String, board: String, bank: String, b
 case class Games(games: Map[String, Game])
 
 //get /boards wieso enthält ein Game kein ready und players?
-case class Game(gameid: String = Games.id().toString, players: ListBuffer[Player] = ListBuffer(), components: Components, started: Boolean = false, var mutex: String = "") {
-  override def toString() = "{ \"gameid\":" + "\"" + gameid + "\"" + "}" //Muell
+case class Game(gameid: String = Games.id().toString, players: ListBuffer[Player] = ListBuffer(), started: Boolean = false, var mutex: String = "") {
+  //override def toString() = "{ \"gameid\":" + "\"" + gameid + "\"" + "}" //Muell
 }

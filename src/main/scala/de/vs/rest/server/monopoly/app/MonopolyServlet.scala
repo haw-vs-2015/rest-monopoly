@@ -7,12 +7,7 @@ import org.json4s._
 import org.json4s.JsonDSL._
 import org.scalatra.json.{ JValueResult, JacksonJsonSupport }
 
-import de.vs.monopoly.Dice
-import de.vs.monopoly.Games
-import de.vs.monopoly.Decks
-import de.vs.monopoly.Board
-import de.vs.monopoly.Boards
-import de.vs.monopoly.Throw
+import de.vs.monopoly._
 
 class MonopolyServlet extends ScalatraServlet with ScalateSupport with JacksonJsonSupport {
 
@@ -127,18 +122,18 @@ class MonopolyServlet extends ScalatraServlet with ScalateSupport with JacksonJs
     Boards()
   }
 
-  get("/boards/{gameid}") {
+  get("/boards/:gameid") {
     Boards.gameBoard(params("gameid")) match {
       case Some(board) => board
       case None => //Gibts nicht?
     }
   }
 
-  put("/boards/{gameid}") {
+  put("/boards/:gameid") {
     Boards.addBoard(params("gameid"))
   }
 
-  delete("/boards/{gameid}") {
+  delete("/boards/:gameid") {
     Boards.deleteBoard(params("gameid"))
   }
 
@@ -149,7 +144,7 @@ class MonopolyServlet extends ScalatraServlet with ScalateSupport with JacksonJs
     Boards.rolled(parsedBody.extract[Throw])
   }
 
-  get("/boards/{gameid}/players") {
+  get("/boards/:gameid/players") {
     Boards.getPlayers(params("gameid"))
   }
 
