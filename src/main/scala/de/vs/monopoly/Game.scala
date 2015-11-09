@@ -23,7 +23,7 @@ object Games { //GamesFacade
     val events = ""
     val _components = Components(_game, dice, board, bank, broker, decks, events)
 
-    var game = Game()
+    var game = Game(components = _components)
     games += (game.gameid -> game)
     game
   }
@@ -41,7 +41,7 @@ object Games { //GamesFacade
 
   def removePlayer(gameid: String, playerid: String) {
     getGame(gameid) match {
-      case Some(game) => game.players -= game.players.filter { x => x.id == playerid }.head
+      case Some(game) => game.players = game.players.filterNot { x => x.id == playerid }
       case None =>
     }
   }
@@ -50,7 +50,7 @@ object Games { //GamesFacade
   def joinGame(gameid: String, name: String) {
     var player = Player(id = Players.id(), name = name, uri = "http://localhost:4567/player/" + name)
     getGame(gameid) match {
-      case Some(game) => game.players += player
+      case Some(game) => game.players +:= player
       case None =>
     }
   }
@@ -112,6 +112,6 @@ case class Components(game: String, dice: String, board: String, bank: String, b
 case class Games(games: Map[String, Game])
 
 //get /boards wieso enthält ein Game kein ready und players?
-case class Game(gameid: String = Games.id().toString, players: ListBuffer[Player] = ListBuffer(), started: Boolean = false, var mutex: String = "") {
+case class Game(gameid: String = Games.id().toString, var players: List[Player] = List(), components:Components, started: Boolean = false, var mutex: String = "") {
   //override def toString() = "{ \"gameid\":" + "\"" + gameid + "\"" + "}" //Muell
 }

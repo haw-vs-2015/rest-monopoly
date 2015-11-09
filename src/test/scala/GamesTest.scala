@@ -37,17 +37,16 @@ class GamesTest extends ScalatraSuite with FunSuiteLike {
     }
   }
 
-  //ListBuffer klappt nicht, mit immutable collection loesen?
   test("get games players") {
     get("/games/1") {
       status should equal(200)
 
       parseOpt(body) match {
-        case Some(json) => json.extract[Game] 
-//        match {
-//          case Some(game) => assert(game.gameid == 1)
-//          case None => fail(body)
-//        }
+        case Some(json) => json.extractOpt[Game] 
+        match {
+          case Some(game) => assert(game.gameid == "1")
+          case None => fail(body)
+        }
         case None => fail(body)
       }
     }
