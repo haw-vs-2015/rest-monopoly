@@ -23,6 +23,11 @@ Build stand alone
 4. Die id des spielers sollte fortlaufend sein, da andere Games des selben Spielernamen haben könnten?
 5. Wozu id lowerCase und name uppercase?
 6. Wird die uri des Spielers mitgegeben damit er erreichbar ist? Also anstatt localhost fügt der Spieler seine IP hinzu?.
+7. post http://localhost:4567/games
+8. http://localhost:4567/games/1/players/Mustermann/http://localhost:4567/player/Mustermann klappt nicht
+9. http://localhost:4567/games/1/players/mustermann
+10. Kann man die API in RAML durch nummerieren?
+ 
 
 # Quellen #
 
