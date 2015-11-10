@@ -39,5 +39,6 @@ object JettyMain {
     server setHandler webApp
 
     server.start()
+
   }
 }
