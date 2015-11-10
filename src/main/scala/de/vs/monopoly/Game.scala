@@ -11,7 +11,8 @@ object Games {
 
   //methods
   def id(): String = {
-    _id += 1; _id.toString
+    _id += 1;
+    _id.toString
   }
 
   def createNewGame(): Game = {
@@ -76,11 +77,15 @@ object Games {
 
   def setPlayerReady(gameid: String, playerid: String) {
     getPlayer(gameid, playerid) match {
-      case Some(player) => player.ready = true;
+      case Some(player) =>
+        println("setPlayerReady success")
+        player.ready = true;
       case None => println("Error setPlayerReady")
     }
   }
 
+  //Die reihenfolge muss implementiert werden letzter in der Liste wird an
+  //stelle eins gesetzt, wenn er dran war.
   def getCurrentPlayer(gameid: String): Option[Player] = {
     getGame(gameid) match {
       case Some(game) => game.players.headOption
@@ -95,12 +100,14 @@ object Games {
     }
   }
 
+  //zu aquiere
   def setMutex(gameid: String, playerid: String): String = {
+
     getGame(gameid) match {
       case Some(game) =>
         if (playerid == game.mutex) {
           "200"
-        } else if (playerid == "") {
+        } else if (game.mutex == "") {
           game.mutex = playerid
           "201"
         } else {

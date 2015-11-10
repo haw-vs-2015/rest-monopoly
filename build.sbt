@@ -18,6 +18,7 @@ port in container.Configuration := 4567
 
 libraryDependencies ++= Seq(
   "org.scalatra" 	    %% "scalatra-scalatest"             % "2.4.0.M3",
+  "com.typesafe.play"       %% "play-ws"                        % "2.5.0-M1",
   "org.scalatra"            %% "scalatra"                       % "2.3.0.RC3",
   "org.scalatra"            %% "scalatra-scalate"               % "2.3.0.RC3",
   "org.scalatra"            %% "scalatra-json"                  % "2.3.0.RC3",

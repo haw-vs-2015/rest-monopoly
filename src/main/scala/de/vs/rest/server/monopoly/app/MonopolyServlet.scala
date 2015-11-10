@@ -87,7 +87,7 @@ class MonopolyServlet extends ScalatraServlet with ScalateSupport with JacksonJs
   //get player of current turn
   get("/games/:gameid/players/current") {
     Games getCurrentPlayer (params("gameid")) match {
-      case Some(player) => player
+      case Some(player) => player//json fuegt keine " "hinzu
       case None => //Gibts nicht?
     }
   }
@@ -102,18 +102,17 @@ class MonopolyServlet extends ScalatraServlet with ScalateSupport with JacksonJs
 
   //Nur nicht nur die Player id uebergeben? id muss noch aus body geholt werden.
   //put tries to aquire the turn mutex
-  put("/games/:gameid/players/turn") {
-    
+  put("/games/:gameid/players/:playerid/turn") {
     Games setMutex (params("gameid"), params("playerid")) match {
       case "200" => Ok()
       case "201" => Created()
-      case "409" => Gone()
+      case "409" => Conflict()
     }
   }
 
   //delete the mutex
   delete("/games/:gameid/players/turn") {
-    Games setMutex (params("gameid"), params("playerid"))
+    Games resetMutex (params("gameid"))
   }
 
   //BOARDS
@@ -138,9 +137,7 @@ class MonopolyServlet extends ScalatraServlet with ScalateSupport with JacksonJs
 
   post("/boards/:gameid/players/:playerid/roll") {
     //hier fehlt noch was
-    params("gameid")
-    params("playerid")
-    Boards.rolled(parsedBody.extract[Throw])
+    Boards.rolled(params("gameid"), params("playerid"), parsedBody.extract[Throw])
   }
 
   get("/boards/:gameid/players") {

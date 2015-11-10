@@ -16,8 +16,14 @@ object Boards {
   var boards: Map[String, Board] = Map()
 
   // Gewürfelter Wert
-  def rolled(_throw: Throw) {
+  def rolled(gameid:String, playerid: String, _throw: Throw): Option[Board] = {
+
+    // Wer hat es gewürfelt
+    // Wer hat den mutex, game fragen
+    // bewegen des spielers
+
     println(_throw)
+    None
   }
 
   def addBoard(gameid: String) = {
@@ -30,7 +36,7 @@ object Boards {
   }
 
   def gameBoard(gameid: String): Option[Board] = boards.get(gameid)
-  
+
   //Muell
   def getPlayers(gameid: String): List[Player] = boards.get(gameid) match {
     case Some(board) =>
@@ -50,7 +56,8 @@ case class Board(fields: List[Field])
 
 //get /boards/{gameid} was soll das mit dem place und wieso ist da noch ein name
 case class Field(place: Place, players: List[Player])
-case class Place(name: String="")
+
+case class Place(name: String = "")
 
 case class Throw(roll1: Roll, roll2: Roll)
 
