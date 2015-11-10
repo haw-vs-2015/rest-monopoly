@@ -60,14 +60,13 @@ class MonopolyServlet extends ScalatraServlet with ScalateSupport with JacksonJs
           case Some(player) => player
           case None => //Gibts nicht?
         }
-
       case None => //Gibts nicht?
     }
   }
 
   //put player to game(join game)
-  delete("/games/:gameid/players/:playerid") {
-    Games joinGame (params("gameid"), params("playerid"))
+  put("/games/:gameid/players/:playerid/:uri") {
+    Games joinGame (params("gameid"), params("playerid"), params("uri"))
   }
 
   //remove player
