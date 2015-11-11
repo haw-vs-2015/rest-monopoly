@@ -137,7 +137,8 @@ class MonopolyServlet extends ScalatraServlet with ScalateSupport with JacksonJs
 
   post("/boards/:gameid/players/:playerid/roll") {
     //hier fehlt noch was
-    Boards.rolled(params("gameid"), params("playerid"), parsedBody.extract[Throw])
+    val pot = parsedBody.extract[Post]
+    Boards.rolled(params("gameid"), pot.player, pot._throw)
   }
 
   get("/boards/:gameid/players") {

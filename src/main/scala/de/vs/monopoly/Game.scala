@@ -1,7 +1,5 @@
 package de.vs.monopoly
 
-import scala.collection.mutable.ListBuffer
-
 object Games {
   //GamesFacade
 
@@ -78,6 +76,19 @@ object Games {
   def setPlayerReady(gameid: String, playerid: String) {
     getPlayer(gameid, playerid) match {
       case Some(player) =>
+        getCurrentPlayer(gameid) match {
+          case Some(player) =>
+            if (player.id == playerid) {
+              getGame(gameid) match {
+                case Some(game) =>
+                  game.players = player :: game.players.filterNot( x => x.id == player.id)
+                  player.ready = false;
+                  setMutex(gameid, player.id)
+                case None => None
+              }
+            }
+          case None => None
+        }
         println("setPlayerReady success")
         player.ready = true;
       case None => println("Error setPlayerReady")
