@@ -17,6 +17,7 @@ scalacOptions += "-language:postfixOps"
 port in container.Configuration := 4567
 
 libraryDependencies ++= Seq(
+  "com.typesafe.play"       %% "play-ws"                        % "2.4.3",
   "org.scalatra" 	    %% "scalatra-scalatest"             % "2.4.0.M3",
   "org.scalatra"            %% "scalatra"                       % "2.3.0.RC3",
   "org.scalatra"            %% "scalatra-scalate"               % "2.3.0.RC3",
@@ -27,7 +28,7 @@ libraryDependencies ++= Seq(
   "org.json4s"              %% "json4s-jackson"                 % "3.2.10",
   "org.json4s"              %% "json4s-ext"                     % "3.2.10",
   "commons-codec"            % "commons-codec"                  % "1.7",
-  "net.databinder.dispatch" %% "dispatch-core"                  % "0.11.3",
+  //"net.databinder.dispatch" %% "dispatch-core"                  % "0.11.3",
   //"net.databinder.dispatch" %% "json4s-jackson"                 % "0.11.2",
   "net.databinder.dispatch" %% "dispatch-json4s-jackson"        % "0.11.2",
   "com.typesafe.akka"       %% "akka-actor"                     % "2.3.6",
