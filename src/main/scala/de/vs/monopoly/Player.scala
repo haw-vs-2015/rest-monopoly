@@ -10,5 +10,6 @@ object Players {
   
 }
 
+//@TODO ?
 //Wieso steht bei dem example /games/{gameid}/players keine position und place dabei? 
 case class Player(id: String, name: String, uri: String, place: Place = Place(), var position: Int = 0, var ready: Boolean = false)

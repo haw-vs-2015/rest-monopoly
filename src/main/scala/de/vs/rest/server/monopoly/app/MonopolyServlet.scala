@@ -36,7 +36,7 @@ class MonopolyServlet extends ScalatraServlet with ScalateSupport with JacksonJs
     Created(Games createNewGame)
   }
 
-  //Creates a new Game
+  //get a Game by gameid
   get("/games/:gameid") {
     Games getGame (params("gameid")) match {
       case Some(game) => game
@@ -63,6 +63,11 @@ class MonopolyServlet extends ScalatraServlet with ScalateSupport with JacksonJs
       case None => //Gibts nicht?
     }
   }
+
+//  //start game
+//  put("/games/:gameid/players/:playerid/:uri") {
+//    Games startGame (params("gameid"), params("playerid"), params("uri"))
+//  }
 
   //put player to game(join game)
   put("/games/:gameid/players/:playerid/:uri") {
@@ -100,6 +105,7 @@ class MonopolyServlet extends ScalatraServlet with ScalateSupport with JacksonJs
     }
   }
 
+  //@TODO ?
   //Nur nicht nur die Player id uebergeben? id muss noch aus body geholt werden.
   //put tries to aquire the turn mutex
   put("/games/:gameid/players/:playerid/turn") {
@@ -136,7 +142,7 @@ class MonopolyServlet extends ScalatraServlet with ScalateSupport with JacksonJs
   }
 
   post("/boards/:gameid/players/:playerid/roll") {
-    //hier fehlt noch was
+    //@TODO Hier fehlt noch was?
     val pot = parsedBody.extract[Post]
     Boards.rolled(params("gameid"), pot.player, pot._throw)
   }
@@ -146,6 +152,7 @@ class MonopolyServlet extends ScalatraServlet with ScalateSupport with JacksonJs
   }
 
   //DECKS
+  //@TODO ?
   //Muss irgendwie mit game(s) verbunden werden.. Ein game hat Decks, wo steht das in der api?
   //get a chance
   get("/games/:gameid/chance") {

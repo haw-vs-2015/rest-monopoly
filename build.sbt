@@ -17,8 +17,10 @@ scalacOptions += "-language:postfixOps"
 port in container.Configuration := 4567
 
 libraryDependencies ++= Seq(
+  "org.scalatest"           %% "scalatest"                      % "2.2.4",
+  //"org.scalatest"           %% "scalatest"                      % "2.2.1" % "test",
   "com.typesafe.play"       %% "play-ws"                        % "2.4.3",
-  "org.scalatra" 	    %% "scalatra-scalatest"             % "2.4.0.M3",
+  //"org.scalatra" 	    %% "scalatra-scalatest"             % "2.4.0.M3",
   "org.scalatra"            %% "scalatra"                       % "2.3.0.RC3",
   "org.scalatra"            %% "scalatra-scalate"               % "2.3.0.RC3",
   "org.scalatra"            %% "scalatra-json"                  % "2.3.0.RC3",

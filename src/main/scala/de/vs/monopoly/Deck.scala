@@ -6,7 +6,8 @@ object Decks {
   
   var chances: ListBuffer[Card] = ListBuffer()
   var communities: ListBuffer[Card] = ListBuffer()
-  
+
+  //@TODO ?
   //Init Cards need some random/shuffle
   //ohne id alles anhand name? haben alle karten einen anderen namen?
   //was löst die logik aus.

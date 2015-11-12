@@ -1,5 +1,6 @@
 package de.vs.monopoly
 
+//@TODO Places definieren
 //object Places {
 //  val placesConf = List[Place](
 //      
@@ -21,7 +22,7 @@ object Boards {
     gameBoard(gameid) match {
       case Some(board) =>
         board.fields.foreach { field => field.players = field.players.filterNot(p => p.id == player.id) }
-        player.position += amount //zurücketzen...
+        player.position += amount //@TODO zurücketzen modulo...
         board.fields(player.position).players +:= player
         Some(BoardStatus(player, board))
       case None => None
@@ -38,7 +39,7 @@ object Boards {
     boards += (gameid -> Board(List()))
   }
 
-  //delete, wie loescht man das ganze game?
+  //@TODO delete, wie loescht man das ganze game?
   def deleteBoard(gameid: String) = {
     boards -= gameid
   }
@@ -56,6 +57,10 @@ object Boards {
     case None => Nil
   }
 
+  def resetBoards(): Unit = {
+    boards = Map()
+  }
+
   def apply() = boards.values
 
 }
@@ -65,10 +70,10 @@ case class Post(_throw: Throw, player:Player)
 case class Board(fields: List[Field])
 case class BoardStatus(player:Player, board: Board)
 
+//@TODO ?
 //get /boards/{gameid} was soll das mit dem place und wieso ist da noch ein name
 case class Field(place: Place, var players: List[Player])
 
 case class Place(name: String = "")
 
 case class Throw(roll1: Roll, roll2: Roll)
-

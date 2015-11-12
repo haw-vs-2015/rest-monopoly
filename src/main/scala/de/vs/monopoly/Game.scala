@@ -9,7 +9,7 @@ object Games {
 
   //methods
   def id(): String = {
-    _id += 1;
+    _id += 1
     _id.toString
   }
 
@@ -53,6 +53,7 @@ object Games {
     }
   }
 
+  //@TODO ?
   //woher weiss der Spieler das er gejoint ist? Maximum festlegen?
   def joinGame(gameid: String, _name: String, _uri: String) {
     var player = Player(id = _name.toLowerCase, name = _name, uri = _uri)
@@ -73,28 +74,55 @@ object Games {
     }
   }
 
+  //Spielerwechsel? und lobby ready
   def setPlayerReady(gameid: String, playerid: String) {
+
     getPlayer(gameid, playerid) match {
-      case Some(player) =>
-        getCurrentPlayer(gameid) match {
-          case Some(player) =>
-            if (player.id == playerid) {
-              getGame(gameid) match {
-                case Some(game) =>
-                  game.players = player :: game.players.filterNot( x => x.id == player.id)
-                  player.ready = false;
-                  setMutex(gameid, player.id)
-                case None => None
+      case Some(playerTry) =>
+        //Game started
+        if (getGame(gameid).get.started) {
+          getCurrentPlayer(gameid) match {
+            case Some(player) =>
+              if (player.id == playerid) {
+                //check ob spieler gerade dran auch der jenige, der ready drueckt
+                getGame(gameid) match {
+                  case Some(game) =>
+                    game.players = player :: game.players.tail // filterNot( x => x.id == player.id)
+                    player.ready = true
+                    game.players.head.ready = false
+                    setMutex(gameid, player.id)
+                  case None => None
+                }
               }
-            }
-          case None => None
+            case None =>
+          }
+        } else {
+          //Game not started lobby
+          println("setPlayerReady lobby success")
+          playerTry.ready = true
+
+          //@TODO
+          //check if all players ready => start game
+          val players = getPlayers(gameid)
+          if (players.forall(_.ready == true)) {
+            println("setPlayerReady game started")
+            //@TODO hier fehlt was, direktes starten des spiels nicht erlaubt, da ready true erwartet wird
+            //players.head.ready = false
+            getGame(gameid).get.started = true
+          }
         }
-        println("setPlayerReady success")
-        player.ready = true;
       case None => println("Error setPlayerReady")
     }
   }
 
+  def getPlayers(gameid: String): List[Player] = {
+    games.get(gameid) match {
+      case Some(game) => game.players
+      case None => Nil
+    }
+  }
+
+  //@TODO ?
   //Die reihenfolge muss implementiert werden letzter in der Liste wird an
   //stelle eins gesetzt, wenn er dran war.
   def getCurrentPlayer(gameid: String): Option[Player] = {
@@ -111,9 +139,9 @@ object Games {
     }
   }
 
-  //zu aquiere
+  //@TODO Zu aquiere umbennen?
   def setMutex(gameid: String, playerid: String): String = {
-
+    //@TODO Hier einen echten mutex einbauen, da jetty async?
     getGame(gameid) match {
       case Some(game) =>
         if (playerid == game.mutex) {
@@ -135,6 +163,11 @@ object Games {
     }
   }
 
+  def resetGames(): Unit = {
+    games = Map()
+    _id = 0
+  }
+
   def apply() = new Games(games.values.toList) //getGames
 }
 
@@ -142,7 +175,6 @@ case class Components(game: String, dice: String, board: String, bank: String, b
 
 case class Games(games: List[Game])
 
+//@TODO
 //get /boards wieso enthält ein Game kein ready und players?
-case class Game(gameid: String = Games.id().toString, var players: List[Player] = List(), components: Components, started: Boolean = false, var mutex: String = "") {
-  //override def toString() = "{ \"gameid\":" + "\"" + gameid + "\"" + "}" //Muell
-}
+case class Game(gameid: String = Games.id().toString, var players: List[Player] = List(), components: Components, var started: Boolean = false, var mutex: String = "")
