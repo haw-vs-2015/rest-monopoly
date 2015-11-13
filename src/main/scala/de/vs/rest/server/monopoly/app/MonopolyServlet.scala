@@ -71,7 +71,7 @@ class MonopolyServlet extends ScalatraServlet with ScalateSupport with JacksonJs
   }
 
   //put player to game(join game)
-  put("/games/:gameid/players") {
+  put("/games/:gameid/players/:playerid") {
     Games joinGame(params("gameid"), params("name"), params("uri"))
   }
 

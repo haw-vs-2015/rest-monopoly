@@ -9,6 +9,7 @@ import org.json4s.jackson.JsonMethods._
 import org.json4s.DefaultFormats
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import org.scalatest._
+import play.api.libs.ws.WSResponse
 import scala.concurrent.duration._
 import de.vs.http.client.Http._
 
@@ -101,7 +102,7 @@ class GamesTest2 extends FunSuite with BeforeAndAfter {
     var response = post("/games", TIMEOUT)
     assert(response.status == 201)
 
-    response = de.vs.http.client.Http.get("/games/1/players", TIMEOUT)
+    response = get("/games/1/players", TIMEOUT)
     assert(response.status == 200)
 
     parseOpt(response.body) match {
@@ -127,23 +128,25 @@ class GamesTest2 extends FunSuite with BeforeAndAfter {
     }
   }
 
-
   test("joins a player to the game with name and uri") {
     val name = "Mustermann"
     val uri = "http://localhost:4567/player/" + name.toLowerCase()
     val uri_encoded = URLEncoder.encode(uri, "UTF-8")
 
     //Create a game
-    post("/games", TIMEOUT)
-    var response = get("/games/1", TIMEOUT)
+    var response = post("/games", TIMEOUT)
+    assert(response.status == 201)
+
+    //@TODO game anfragen pruefen ob vorhanden
+    response = get("/games/1", TIMEOUT)
     assert(response.status == 200)
 
-    //put sollte id liefern
-    response = put("/games/1/players?name=" + name + "&uri=" + uri_encoded, TIMEOUT)
-    assert(response.status == 200)
+    //@TODO put sollte id liefern
+    createPlayer(name, uri_encoded)
 
     response = get("/games/1/players/" + name.toLowerCase, TIMEOUT)
     assert(response.status == 200)
+
     parseOpt(response.body) match {
       case Some(json) => json.extractOpt[Player] match {
         case Some(player) =>
@@ -162,11 +165,11 @@ class GamesTest2 extends FunSuite with BeforeAndAfter {
     val uri_encoded = URLEncoder.encode(uri, "UTF-8")
 
     //Create a game
-    post("/games", TIMEOUT)
+    var response = post("/games", TIMEOUT)
+    assert(response.status == 201)
 
-    //put sollte id liefern spieler erstellen
-    var response = put("/games/1/players?name=" + name + "&uri=" + uri_encoded, TIMEOUT)
-    assert(response.status == 200)
+    //@TODO put sollte id liefern spieler erstellen
+    createPlayer(name, uri_encoded)
 
     //Check player created
     response = get("/games/1/players/" + name.toLowerCase, TIMEOUT)
@@ -188,6 +191,7 @@ class GamesTest2 extends FunSuite with BeforeAndAfter {
     //Check player deleted
     response = get("/games/1/players/" + name.toLowerCase, TIMEOUT)
     assert(response.status == 200)
+
     parseOpt(response.body) match {
       case Some(json) => json.extractOpt[Player] match {
         case Some(player) => fail(json + EMPTY_MESSAGE)
@@ -200,8 +204,10 @@ class GamesTest2 extends FunSuite with BeforeAndAfter {
   test("get ready status tells if the player is ready to start the game ") {
     val name = "Mustermann"
 
+    //Check ready
     var response = get("/games/1/players/" + name.toLowerCase + "/" + "ready", TIMEOUT)
     assert(response.status == 200)
+
     parseOpt(response.body) match {
       case Some(json) => json.extractOpt[Boolean] match {
         case Some(bool) => assert(bool == false)
@@ -217,15 +223,16 @@ class GamesTest2 extends FunSuite with BeforeAndAfter {
     val uri_encoded = URLEncoder.encode(uri, "UTF-8")
 
     //Create a game
-    post("/games", TIMEOUT)
+    var response = post("/games", TIMEOUT)
+    assert(response.status == 201)
 
     //put sollte id liefern
-    var response = put("/games/1/players?name=" + name + "&uri=" + uri_encoded, TIMEOUT)
-    assert(response.status == 200)
+    createPlayer(name, uri_encoded)
 
     //check not ready
     response = get("/games/1/players/" + name.toLowerCase + "/" + "ready", TIMEOUT)
     assert(response.status == 200)
+
     parseOpt(response.body) match {
       case Some(json) => json.extractOpt[Boolean] match {
         case Some(bool) => assert(bool == false)
@@ -256,10 +263,11 @@ class GamesTest2 extends FunSuite with BeforeAndAfter {
     val uri_encoded = URLEncoder.encode(uri, "UTF-8")
 
     //Create a game
-    post("/games", TIMEOUT)
+    var response = post("/games", TIMEOUT)
+    assert(response.status == 201)
 
     //Create a player
-    var response = put("/games/1/players?name=" + name + "&uri=" + uri_encoded, TIMEOUT)
+    createPlayer(name, uri_encoded)
 
     response = get("/games/1/players/current", TIMEOUT)
     assert(response.status == 200)
@@ -278,12 +286,13 @@ class GamesTest2 extends FunSuite with BeforeAndAfter {
     val uri_encoded = URLEncoder.encode(uri, "UTF-8")
 
     //Create a game
-    post("/games", TIMEOUT)
+    var response = post("/games", TIMEOUT)
+    assert(response.status == 201)
 
     //Create a player
-    put("/games/1/players/" + name + "/" + uri_encoded, TIMEOUT)
+    createPlayer(name, uri_encoded)
 
-    var response = get("/games/1/players/turn", TIMEOUT)
+    response = get("/games/1/players/turn", TIMEOUT)
     assert(response.status == 200)
     parseOpt(response.body) match {
       case Some(json) => json.extractOpt[String] match {
@@ -299,20 +308,26 @@ class GamesTest2 extends FunSuite with BeforeAndAfter {
     val uri = "http://localhost:4567/player/" + name.toLowerCase()
     val uri_encoded = URLEncoder.encode(uri, "UTF-8")
     val name2 = "noplayer"
+    val uri2 = "http://localhost:4567/player/" + name2.toLowerCase()
+    val uri2_encoded = URLEncoder.encode(uri2, "UTF-8")
 
     //Create a game
-    post("/games", TIMEOUT)
-
-    //Create a player
-    put("/games/1/players/" + name + "/" + uri_encoded, TIMEOUT)
-    put("/games/1/players/" + name2 + "/" + uri_encoded, TIMEOUT)
-
-    var response = put("/games/1/players/" + name.toLowerCase + "/turn", TIMEOUT)
+    var response = post("/games", TIMEOUT)
     assert(response.status == 201)
 
+    //Create a player
+    createPlayer(name, uri_encoded)
+    createPlayer(name2, uri2_encoded)
+
+    //Try get mutex
+    response = put("/games/1/players/" + name.toLowerCase + "/turn", TIMEOUT)
+    assert(response.status == 201)
+
+    //Try get mutex
     response = put("/games/1/players/" + name.toLowerCase + "/turn", TIMEOUT)
     assert(response.status == 200)
 
+    //Try get mutex
     response = put("/games/1/players/" + name2.toLowerCase + "/turn", TIMEOUT)
     assert(response.status == 409)
   }
@@ -323,14 +338,17 @@ class GamesTest2 extends FunSuite with BeforeAndAfter {
     val uri_encoded = URLEncoder.encode(uri, "UTF-8")
 
     //Create a game
-    post("/games", TIMEOUT)
-
-    //Create a player
-    put("/games/1/players/" + name + "/" + uri_encoded, TIMEOUT)
-
-    var response = put("/games/1/players/" + name.toLowerCase + "/turn", TIMEOUT)
+    var response = post("/games", TIMEOUT)
     assert(response.status == 201)
 
+    //Create a player
+    createPlayer(name, uri_encoded)
+
+    //Try get mutex
+    response = put("/games/1/players/" + name.toLowerCase + "/turn", TIMEOUT)
+    assert(response.status == 201)
+
+    //get mutex
     response = get("/games/1/players/turn", TIMEOUT)
     assert(response.status == 200)
 
@@ -349,16 +367,18 @@ class GamesTest2 extends FunSuite with BeforeAndAfter {
     val uri_encoded = URLEncoder.encode(uri, "UTF-8")
 
     //Create a game
-    post("/games", TIMEOUT)
+    var response = post("/games", TIMEOUT)
+    assert(response.status == 201)
 
     //Create a player
-    put("/games/1/players/" + name + "/" + uri_encoded, TIMEOUT)
+    createPlayer(name, uri_encoded)
 
-    var response = delete("/games/1/players/turn", TIMEOUT)
+    response = delete("/games/1/players/turn", TIMEOUT)
     assert(response.status == 200)
 
     response = get("/games/1/players/turn", TIMEOUT)
     assert(response.status == 200)
+
     parseOpt(response.body) match {
       case Some(json) => json.extractOpt[String] match {
         case Some(playerid) => fail("Error, keiner hat den Mutex " + json)
@@ -383,17 +403,19 @@ class GamesTest2 extends FunSuite with BeforeAndAfter {
     val uri4_encoded = URLEncoder.encode(uri4, "UTF-8")
 
     //Create a game
-    post("/games", TIMEOUT)
+    var response = post("/games", TIMEOUT)
+    assert(response.status == 201)
 
     //Create 4 players
-    put("/games/1/players?name=" + name1 + "&uri=" + uri1_encoded, TIMEOUT)
-    put("/games/1/players?name=" + name2 + "&uri=" + uri2_encoded, TIMEOUT)
-    put("/games/1/players?name=" + name3 + "&uri=" + uri3_encoded, TIMEOUT)
-    put("/games/1/players?name=" + name4 + "&uri=" + uri4_encoded, TIMEOUT)
+    createPlayer(name1, uri1_encoded)
+    createPlayer(name2, uri2_encoded)
+    createPlayer(name3, uri3_encoded)
+    createPlayer(name4, uri4_encoded)
 
     //Check game not started
-    var response = get("/games/1", TIMEOUT)
+    response = get("/games/1", TIMEOUT)
     assert(response.status == 200)
+
     parseOpt(response.body) match {
       case Some(json) => json.extractOpt[Game] match {
         case Some(game) => assert(game.started == false)
@@ -417,6 +439,7 @@ class GamesTest2 extends FunSuite with BeforeAndAfter {
     //Check again game not started
     response = get("/games/1", TIMEOUT)
     assert(response.status == 200)
+
     parseOpt(response.body) match {
       case Some(json) => json.extractOpt[Game] match {
         case Some(game) => assert(game.started == false)
@@ -425,7 +448,7 @@ class GamesTest2 extends FunSuite with BeforeAndAfter {
       case None => assert(response.body == "")
     }
 
-    //create player and make player4 ready
+    //make player4 ready
     response = put("/games/1/players/" + name4.toLowerCase + "/ready", TIMEOUT)
     assert(response.status == 200)
 
@@ -436,6 +459,7 @@ class GamesTest2 extends FunSuite with BeforeAndAfter {
     //Check game started
     response = get("/games/1", TIMEOUT)
     assert(response.status == 200)
+
     parseOpt(response.body) match {
       case Some(json) => json.extractOpt[Game] match {
         case Some(game) => assert(game.started == true)
@@ -445,27 +469,32 @@ class GamesTest2 extends FunSuite with BeforeAndAfter {
     }
   }
 
-//  test("Würfeln und Spieler wechsel") {
-//    val name = "Mustermann"
-//    val uri = "http://localhost:4567/player/" + name.toLowerCase()
-//    val uri_encoded = URLEncoder.encode(uri, "UTF-8")
-//
-//    //Create a game
-//    post("/games", TIMEOUT)
-//
-//    //Create a player
-//    put("/games/1/players/" + name + "/" + uri_encoded, TIMEOUT)
-//
-//    //@TODO Player fehlt, roll erwartet Post objekt als json und nicht nur Throw
-//    var _throw = "{" +
-//      "\"roll1\": {\"number\":21 }," +
-//      "\"roll2\": {\"number\":42 } " +
-//      " }"
-//
-//    var response = post("/boards/1/players/" + name.toLowerCase + "/roll", _throw, TIMEOUT)
-//    assert(response.status == 200)
-//
-//  }
+  //  test("Würfeln und Spieler wechsel") {
+  //    val name = "Mustermann"
+  //    val uri = "http://localhost:4567/player/" + name.toLowerCase()
+  //    val uri_encoded = URLEncoder.encode(uri, "UTF-8")
+  //
+  //    //Create a game
+  //    post("/games", TIMEOUT)
+  //
+  //    //Create a player
+  //    put("/games/1/players/" + name + "/" + uri_encoded, TIMEOUT)
+  //
+  //    //@TODO Player fehlt, roll erwartet Post objekt als json und nicht nur Throw
+  //    var _throw = "{" +
+  //      "\"roll1\": {\"number\":21 }," +
+  //      "\"roll2\": {\"number\":42 } " +
+  //      " }"
+  //
+  //    var response = post("/boards/1/players/" + name.toLowerCase + "/roll", _throw, TIMEOUT)
+  //    assert(response.status == 200)
+  //
+  //  }
 
   //@TODO initGame methode x players - refactoring
+
+  def createPlayer(name: String, uri_encoded: String) = {
+    var response = put("/games/1/players/" + name + "?name=" + name + "&uri=" + uri_encoded, TIMEOUT)
+    assert(response.status == 200)
+  }
 }
