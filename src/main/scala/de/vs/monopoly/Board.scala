@@ -17,16 +17,27 @@ object Boards {
   var boards: Map[String, Board] = Map()
 
   // Gewürfelter Wert
-  def rolled(gameid: String, player: Player, _throw: Throw): Option[BoardStatus] = {
-    var amount = _throw.roll1.number + _throw.roll2.number
-    gameBoard(gameid) match {
-      case Some(board) =>
-        board.fields.foreach { field => field.players = field.players.filterNot(p => p.id == player.id) }
-        player.position += amount //@TODO zurücketzen modulo...
-        board.fields(player.position).players +:= player
-        Some(BoardStatus(player, board))
+  def rolled(gameid: String, playerid: String, _throw: Throw): Option[BoardStatus] = {
+    //@TODO Holen ueber client Anfrage von games-service
+    Games.getCurrentPlayer(gameid) match {
+      case Some(player) =>
+        if (player.id == playerid) {
+          //falls der korrekte player
+          var amount = _throw.roll1.number + _throw.roll2.number
+          gameBoard(gameid) match {
+            case Some(board) =>
+              board.fields.foreach { field => field.players = field.players.filterNot(p => p.id == player.id) }
+              player.position += amount //@TODO Zuruecksetzen modulo...
+              board.fields(player.position).players +:= player
+              Some(BoardStatus(player, board))
+            case None => None
+          }
+        } else {
+          None
+        }
       case None => None
     }
+
     // Wer hat es gewürfelt
     // Wer hat den mutex, game fragen
     // bewegen des spielers
@@ -65,10 +76,11 @@ object Boards {
 
 }
 
-case class Post(_throw: Throw, player:Player)
+case class Post(_throw: Throw, player: Player)
 
 case class Board(fields: List[Field])
-case class BoardStatus(player:Player, board: Board)
+
+case class BoardStatus(player: Player, board: Board)
 
 //@TODO ?
 //get /boards/{gameid} was soll das mit dem place und wieso ist da noch ein name

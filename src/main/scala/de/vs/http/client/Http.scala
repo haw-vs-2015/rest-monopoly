@@ -145,7 +145,6 @@ object Http {
       response => println(response.body)
     }
 
-
     client.url(_url).post("someText") map {
       response => println(response.body)
     }

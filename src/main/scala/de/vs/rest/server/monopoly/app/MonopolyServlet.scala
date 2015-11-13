@@ -5,13 +5,14 @@ import scalate.ScalateSupport
 
 import org.json4s._
 import org.json4s.JsonDSL._
-import org.scalatra.json.{ JValueResult, JacksonJsonSupport }
+import org.scalatra.json.{JValueResult, JacksonJsonSupport}
 
 import de.vs.monopoly._
 
 class MonopolyServlet extends ScalatraServlet with ScalateSupport with JacksonJsonSupport {
 
   protected implicit val jsonFormats: Formats = DefaultFormats
+
   protected override def transformRequestBody(body: JValue): JValue = body.camelizeKeys
 
   before() {
@@ -64,35 +65,35 @@ class MonopolyServlet extends ScalatraServlet with ScalateSupport with JacksonJs
     }
   }
 
-//  //start game
-//  put("/games/:gameid/players/:playerid/:uri") {
-//    Games startGame (params("gameid"), params("playerid"), params("uri"))
-//  }
+  //start game
+  put("/games/:gameid/start") {
+    Games startGame (params("gameid"))
+  }
 
   //put player to game(join game)
-  put("/games/:gameid/players/:playerid/:uri") {
-    Games joinGame (params("gameid"), params("playerid"), params("uri"))
+  put("/games/:gameid/players") {
+    Games joinGame(params("gameid"), params("name"), params("uri"))
   }
 
   //remove player
   delete("/games/:gameid/players/:playerid") {
-    Games removePlayer (params("gameid"), params("playerid"))
+    Games removePlayer(params("gameid"), params("playerid"))
   }
 
   //is player ready
   get("/games/:gameid/players/:playerid/ready") {
-    Games isPlayerReady (params("gameid"), params("playerid"))
+    Games isPlayerReady(params("gameid"), params("playerid"))
   }
 
   //set player "ready status"
   put("/games/:gameid/players/:playerid/ready") {
-    Games setPlayerReady (params("gameid"), params("playerid"))
+    Games setPlayerReady(params("gameid"), params("playerid"))
   }
 
   //get player of current turn
   get("/games/:gameid/players/current") {
     Games getCurrentPlayer (params("gameid")) match {
-      case Some(player) => player//json fuegt keine " "hinzu
+      case Some(player) => player //json fuegt keine " "hinzu
       case None => //Gibts nicht?
     }
   }
@@ -109,7 +110,7 @@ class MonopolyServlet extends ScalatraServlet with ScalateSupport with JacksonJs
   //Nur nicht nur die Player id uebergeben? id muss noch aus body geholt werden.
   //put tries to aquire the turn mutex
   put("/games/:gameid/players/:playerid/turn") {
-    Games setMutex (params("gameid"), params("playerid")) match {
+    Games setMutex(params("gameid"), params("playerid")) match {
       case "200" => Ok()
       case "201" => Created()
       case "409" => Conflict()
@@ -142,9 +143,9 @@ class MonopolyServlet extends ScalatraServlet with ScalateSupport with JacksonJs
   }
 
   post("/boards/:gameid/players/:playerid/roll") {
-    //@TODO Hier fehlt noch was?
-    val pot = parsedBody.extract[Post]
-    Boards.rolled(params("gameid"), pot.player, pot._throw)
+    //@TODO Sollte fertig sein
+    val _throw = parsedBody.extract[Throw]
+    Boards.rolled(params("gameid"), params("playerid"), _throw)
   }
 
   get("/boards/:gameid/players") {
@@ -156,7 +157,7 @@ class MonopolyServlet extends ScalatraServlet with ScalateSupport with JacksonJs
   //Muss irgendwie mit game(s) verbunden werden.. Ein game hat Decks, wo steht das in der api?
   //get a chance
   get("/games/:gameid/chance") {
-    Decks chance () match {
+    Decks chance() match {
       case Some(card) => card
       case None => //Gibts nicht?
     }
@@ -164,7 +165,7 @@ class MonopolyServlet extends ScalatraServlet with ScalateSupport with JacksonJs
 
   //get a community
   get("/games/:gameid/community") {
-    Decks community () match {
+    Decks community() match {
       case Some(card) => card
       case None => //Gibts nicht?
     }

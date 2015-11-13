@@ -88,8 +88,7 @@ object Games {
                 getGame(gameid) match {
                   case Some(game) =>
                     game.players = player :: game.players.tail // filterNot( x => x.id == player.id)
-                    player.ready = true
-                    game.players.head.ready = false
+                    playerTry.ready = true
                     setMutex(gameid, player.id)
                   case None => None
                 }
@@ -100,18 +99,22 @@ object Games {
           //Game not started lobby
           println("setPlayerReady lobby success")
           playerTry.ready = true
-
-          //@TODO
-          //check if all players ready => start game
-          val players = getPlayers(gameid)
-          if (players.forall(_.ready == true)) {
-            println("setPlayerReady game started")
-            //@TODO hier fehlt was, direktes starten des spiels nicht erlaubt, da ready true erwartet wird
-            //players.head.ready = false
-            getGame(gameid).get.started = true
-          }
         }
       case None => println("Error setPlayerReady")
+    }
+  }
+
+  def startGame(gameid:String) {
+    //@TODO
+    //check if all players ready => start game
+    val players = getPlayers(gameid)
+    println("try start game")
+    players.foreach(p => println(p.ready))
+    if (players.forall(_.ready == true)) {
+      println("setPlayerReady game started")
+      //@TODO hier fehlt was, direktes starten des spiels nicht erlaubt, da ready true erwartet wird
+      //players.head.ready = false
+      getGame(gameid).get.started = true
     }
   }
 
@@ -170,6 +173,7 @@ object Games {
 
   def apply() = new Games(games.values.toList) //getGames
 }
+
 
 case class Components(game: String, dice: String, board: String, bank: String, broker: String, decks: String, events: String)
 
