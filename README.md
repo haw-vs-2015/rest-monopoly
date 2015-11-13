@@ -2,8 +2,12 @@
 
 rest - http://scalatra.org/
 
-## Build & Run ##
+## Test, Build & Run ##
 
+Test
+
+    sbt test
+    
 Live Debug (set custom port in build.sbt "port in container.Configuration := 4567")
 
     sbt ~container:start
@@ -18,14 +22,10 @@ Build stand alone
 
 # Fragen #
 1. Joint der Spieler automatisch wenn er ein Game erzeugt?
-2. Was soll das mit dem Services? Seite geht nicht auf...
 3. Wie Spieler Timeout erkennen.
 4. Die id des spielers sollte fortlaufend sein, da andere Games des selben Spielernamen haben könnten?
 5. Wozu id lowerCase und name uppercase?
 6. Wird die uri des Spielers mitgegeben damit er erreichbar ist? Also anstatt localhost fügt der Spieler seine IP hinzu?.
-7. post http://localhost:4567/games
-8. http://localhost:4567/games/1/players/Mustermann/http://localhost:4567/player/Mustermann klappt nicht
-9. http://localhost:4567/games/1/players/mustermann
 10. Kann man die API in RAML durch nummerieren?
  
 
