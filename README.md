@@ -2,11 +2,15 @@
 
 rest - http://scalatra.org/
 
-## Test, Build & Run ##
+## Test, Run & Build ##
 
 Test
 
     sbt test
+    
+Run
+
+    sbt run
     
 Live Debug (set custom port in build.sbt "port in container.Configuration := 4567")
 
