@@ -16,7 +16,8 @@ object Http {
   val config = new AsyncHttpClientConfigBean().setAcceptAnyCertificate(true)
   val client = new NingWSClient(config)
   //  val _url = "https://vs-docker.informatik.haw-hamburg.de/ports/8053/services"
-  val default_url = "http://localhost:4567"
+  var port = 4567
+  var default_url = "http://localhost:" + port
 
   /*
    * Async get request

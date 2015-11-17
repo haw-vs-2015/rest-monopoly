@@ -68,7 +68,7 @@ object Boards {
     case None => Nil
   }
 
-  def resetBoards(): Unit = {
+  def reset(): Unit = {
     boards = Map()
   }
 

@@ -166,7 +166,7 @@ object Games {
     }
   }
 
-  def resetGames(): Unit = {
+  def reset(): Unit = {
     games = Map()
     _id = 0
   }

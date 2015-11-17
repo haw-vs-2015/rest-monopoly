@@ -20,7 +20,7 @@ import de.vs.http.client.Http._
  * Testen des Status sagt nur teilweise ueber die rest Schnittstelle aus aber nicht viel ueber die Logik.
  */
 
-class GamesTest2 extends FunSuite with BeforeAndAfter {
+class GameTest extends FunSuite with BeforeAndAfter {
 
   //JSON stuff
   implicit val jsonFormats = DefaultFormats
@@ -31,20 +31,15 @@ class GamesTest2 extends FunSuite with BeforeAndAfter {
   val EMPTY_MESSAGE = " SHOULD BE EMPTY"
   val TIMEOUT = 10 seconds
 
+  //@TODO Check if Port already used in jetty server?
+  //@TODO error messages port already in use
   //Jetty server(restart) stuff
   var server: JettyServer = JettyServer().start()
+  default_url = "http://localhost:" + server.port
 
   after {
-    Boards.resetBoards()
-    Games.resetGames()
-  }
-
-  test("wuerfeln") {
-    var response = get("/dice", TIMEOUT)
-    assert(response.status == 200)
-
-    val obj = parse(response.body).extract[Roll]
-    assert((1 to 6).contains(obj.number))
+    Boards.reset()
+    Games.reset()
   }
 
   test("get games") {

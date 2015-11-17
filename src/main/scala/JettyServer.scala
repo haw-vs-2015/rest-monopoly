@@ -1,5 +1,7 @@
+import java.net.BindException
+
+import de.vs.rest.server.monopoly.app.{GameServlet, BoardServlet}
 import org.eclipse.jetty.server.{HttpConnectionFactory, NetworkTrafficServerConnector, HttpConfiguration, Server}
-import org.eclipse.jetty.util.thread.QueuedThreadPool
 import org.eclipse.jetty.webapp.WebAppContext
 import org.scalatra.servlet.ScalatraListener
 
@@ -18,41 +20,52 @@ case class JettyServer() {
   }
 
   var server: Server = null
+  var portOffset = 0
+  var port = 4567
+  var serverStarted = true
 
-  def stop(): JettyServer = {
-    println("stop jetty")
-    server.stop()
-    this
-  }
+//  def stop(): JettyServer = {
+//    println("stop jetty")
+//    server.stop()
+//    this
+//  }
 
   def start(): JettyServer = {
-    server = new Server
+    do {
+      try {
+        server = new Server
 
-    server setStopTimeout 0
-    //server setDumpAfterStart true
-    server setStopAtShutdown true
+        server setStopTimeout 0
+        //server setDumpAfterStart true
+        server setStopAtShutdown true
 
-    val httpConfig = new HttpConfiguration()
-    httpConfig setSendDateHeader true
-    httpConfig setSendServerVersion false
+        val httpConfig = new HttpConfiguration()
+        httpConfig setSendDateHeader true
+        httpConfig setSendServerVersion false
 
-    val connector = new NetworkTrafficServerConnector(server, new HttpConnectionFactory(httpConfig))
-    connector setPort conf.port
-    connector setSoLingerTime 0
-    connector setIdleTimeout conf.connectorIdleTimeout
-    server addConnector connector
+        val connector = new NetworkTrafficServerConnector(server, new HttpConnectionFactory(httpConfig))
+        connector setPort (conf.port + portOffset)
+        connector setSoLingerTime 0
+        connector setIdleTimeout conf.connectorIdleTimeout
+        server addConnector connector
 
-    val webapp = conf.webapp
-    val webApp = new WebAppContext
-    webApp setContextPath conf.contextPath
-    webApp setResourceBase conf.webapp
-    webApp setEventListeners Array(new ScalatraListener)
+        val webapp = conf.webapp
+        val webApp = new WebAppContext
+        webApp setContextPath conf.contextPath
+        webApp setResourceBase conf.webapp
+        webApp setEventListeners Array(new ScalatraListener)
+        server setHandler webApp
 
-    server setHandler webApp
-
-    server.start()
-
-    println("started jetty")
+        server.start()
+        serverStarted = true
+        port = (conf.port + portOffset)
+      } catch {
+        case e:BindException =>
+          portOffset += 100
+          serverStarted = false
+      }
+    } while (!serverStarted)
+    println("started jetty on port " + port)
     this
   }
 }
