@@ -31,7 +31,10 @@ Build stand alone
 5. Wozu id lowerCase und name uppercase?
 6. Wird die uri des Spielers mitgegeben damit er erreichbar ist? Also anstatt localhost fügt der Spieler seine IP hinzu?.
 10. Kann man die API in RAML durch nummerieren?
- 
+
+11. Tests schlagen manchmal fehl, warum? 
+12. Service zu Service Kommunikation direkt oder per event service?
+13. println zu log?
 
 # Quellen #
 
