@@ -8,6 +8,8 @@ import org.json4s.JsonDSL._
 import org.scalatra.json.{JValueResult, JacksonJsonSupport}
 
 import de.vs.monopoly._
+import scala.concurrent.duration._
+import de.vs.http.client.Http
 
 class GameServlet extends ScalatraServlet with ScalateSupport with JacksonJsonSupport {
 
@@ -20,6 +22,7 @@ class GameServlet extends ScalatraServlet with ScalateSupport with JacksonJsonSu
     response.headers += ("Access-Control-Allow-Origin" -> "*")
   }
 
+  //@TODO Not found liefern bei fails
   //GAMES
   //Gives you a List of all Games
   get("/") {
@@ -28,7 +31,12 @@ class GameServlet extends ScalatraServlet with ScalateSupport with JacksonJsonSu
 
   //Creates a new Game
   post("/") {
-    Created(Games createNewGame)
+    var game = Games createNewGame
+    val response = Http.put("/boards/" + game.gameid, 2 seconds)
+    if (response.status == 201) {
+      game.components.board = "http://localhost:4567/boards"
+    }
+    Created(game)
   }
 
   //get a Game by gameid
@@ -66,7 +74,19 @@ class GameServlet extends ScalatraServlet with ScalateSupport with JacksonJsonSu
 
   //put player to game(join game)
   put("/:gameid/players/:playerid") {
-    Games joinGame(params("gameid"), params("name"), params("uri"))
+    Games joinGame(params("gameid"), params("name"), params("uri")) match {
+      case Some(player) =>
+        //put player on board
+        val response = Http.put("/boards/" + params("gameid") + "/players/" + player.id.toLowerCase, 2 seconds)
+        if (response.status == 201) {
+        print("player ok")
+          Ok(player)
+        } else {
+//          Games.removePlayer(params("gameid"), params("playerid"))
+//          NotFound()
+        }
+      case None => println("no player");NotFound() //Gibts nicht?
+    }
   }
 
   //remove player

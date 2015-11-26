@@ -31,7 +31,7 @@ class DiceTest extends FunSuite with BeforeAndAfter {
   //@TODO Check if Port already used in jetty server?
   //@TODO error messages port already in use
   //Jetty server(restart) stuff
-  var server: JettyServer = JettyServer().start()
+  var server = JettyServer().startOnFreePort()
   default_url = "http://localhost:" + server.port
 
   after {

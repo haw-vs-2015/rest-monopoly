@@ -1,7 +1,9 @@
 import java.net.BindException
+import java.util.logging.Level
 
 import de.vs.rest.server.monopoly.app.{GameServlet, BoardServlet}
-import org.eclipse.jetty.server.{HttpConnectionFactory, NetworkTrafficServerConnector, HttpConfiguration, Server}
+import org.eclipse.jetty.server._
+import org.eclipse.jetty.util.log.Logger
 import org.eclipse.jetty.webapp.WebAppContext
 import org.scalatra.servlet.ScalatraListener
 
@@ -24,47 +26,52 @@ case class JettyServer() {
   var port = 4567
   var serverStarted = true
 
-//  def stop(): JettyServer = {
-//    println("stop jetty")
-//    server.stop()
-//    this
-//  }
 
-  def start(): JettyServer = {
-    do {
-      try {
-        server = new Server
+  def startOnFreePort(): JettyServer ={
+    server = new Server()
+    var _connector = new ServerConnector(server)
+    server.setConnectors(Array[Connector] { _connector })
 
-        server setStopTimeout 0
-        //server setDumpAfterStart true
-        server setStopAtShutdown true
+    val webapp = conf.webapp
+    val webApp = new WebAppContext
+    webApp setContextPath conf.contextPath
+    webApp setResourceBase conf.webapp
+    webApp setEventListeners Array(new ScalatraListener)
+    server setHandler webApp
 
-        val httpConfig = new HttpConfiguration()
-        httpConfig setSendDateHeader true
-        httpConfig setSendServerVersion false
+    server.start()
+    port = _connector.getLocalPort()
 
-        val connector = new NetworkTrafficServerConnector(server, new HttpConnectionFactory(httpConfig))
-        connector setPort (conf.port + portOffset)
-        connector setSoLingerTime 0
-        connector setIdleTimeout conf.connectorIdleTimeout
-        server addConnector connector
+    this
+  }
 
-        val webapp = conf.webapp
-        val webApp = new WebAppContext
-        webApp setContextPath conf.contextPath
-        webApp setResourceBase conf.webapp
-        webApp setEventListeners Array(new ScalatraListener)
-        server setHandler webApp
+  def startOnDefaultPort(): JettyServer = {
+    server = new Server
+    server setStopTimeout 0
+    //server setDumpAfterStart true
+    server setStopAtShutdown true
 
-        server.start()
-        serverStarted = true
-        port = (conf.port + portOffset)
-      } catch {
-        case e:BindException =>
-          portOffset += 100
-          serverStarted = false
-      }
-    } while (!serverStarted)
+    val httpConfig = new HttpConfiguration()
+    httpConfig setSendDateHeader true
+    httpConfig setSendServerVersion false
+
+    val connector = new NetworkTrafficServerConnector(server, new HttpConnectionFactory(httpConfig))
+    connector setPort (conf.port + portOffset)
+    connector setSoLingerTime 0
+    connector setIdleTimeout conf.connectorIdleTimeout
+    server addConnector connector
+
+    val webapp = conf.webapp
+    val webApp = new WebAppContext
+    webApp setContextPath conf.contextPath
+    webApp setResourceBase conf.webapp
+    webApp setEventListeners Array(new ScalatraListener)
+    server setHandler webApp
+
+    server.start()
+    serverStarted = true
+    port = (conf.port + portOffset)
+
     println("started jetty on port " + port)
     this
   }

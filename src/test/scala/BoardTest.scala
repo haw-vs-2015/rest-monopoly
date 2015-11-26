@@ -2,6 +2,8 @@
  * Created by alex on 11.11.15.
  */
 
+import java.net.URLEncoder
+
 import de.vs.http.client.Http._
 import de.vs.monopoly._
 import org.json4s.jackson.JsonMethods._
@@ -26,12 +28,9 @@ class BoardTest extends FunSuite with BeforeAndAfter {
   val BODY_MESSAGE = " BODY EMPTY?"
   val JSON_MESSAGE = " JSON ERROR"
   val EMPTY_MESSAGE = " SHOULD BE EMPTY"
-  val TIMEOUT = 10 seconds
+  val TIMEOUT = 100 seconds
 
-  //@TODO Check if Port already used in jetty server?
-  //@TODO error messages port already in use
-  //Jetty server(restart) stuff
-  var server: JettyServer = JettyServer().start()
+  var server = JettyServer().startOnFreePort()
   default_url = "http://localhost:" + server.port
 
   after {
@@ -43,9 +42,134 @@ class BoardTest extends FunSuite with BeforeAndAfter {
     var response = get("/dice", TIMEOUT)
     assert(response.status == 200)
 
-    val obj = parse(response.body).extract[Roll]
+    var obj = parse(response.body).extract[Roll]
     assert((1 to 6).contains(obj.number))
   }
+
+  test("get all boards") {
+    var response = get("/boards", TIMEOUT)
+    assert(response.status == 200)
+
+    var obj = parse(response.body).extract[Boards]
+    assert(obj.boards.isEmpty)
+  }
+
+  test("find board - fail") {
+    //find board
+    var response = get("/boards/1", TIMEOUT)
+    assert(response.status == 404)
+  }
+
+  test("find board - success") {
+
+    //create board 1
+    var response = put("/boards/1", TIMEOUT)
+    assert(response.status == 201)
+
+    //find board 1
+    response = get("/boards/1", TIMEOUT)
+    assert(response.status == 200)
+
+    response = get("/boards", TIMEOUT)
+    assert(response.status == 200)
+
+    //check if board 1 is still available
+    var obj = parse(response.body).extract[Boards]
+    assert(obj.boards.size == 1)
+  }
+
+  test("board, gameid duplicate - fail conflict") {
+
+    //create board
+    var response = put("/boards/1", TIMEOUT)
+    assert(response.status == 201)
+
+    //create same board again
+    response = put("/boards/1", TIMEOUT)
+    assert(response.status == 409)
+  }
+
+  test("delete gameid(board) - success") {
+
+    //create board 1
+    var response = put("/boards/1", TIMEOUT)
+    assert(response.status == 201)
+
+    //delete board 1
+    response = delete("/boards/1", TIMEOUT)
+    assert(response.status == 200)
+
+    //check if board 1 is deleted
+    response = get("/boards/1", TIMEOUT)
+    assert(response.status == 404)
+  }
+
+  test("delete gameid(board) - fail") {
+
+    //create board 1
+    var response = put("/boards/1", TIMEOUT)
+    assert(response.status == 201)
+
+    //try to delete non available board 2
+    response = delete("/boards/2", TIMEOUT)
+    assert(response.status == 404)
+
+    //check if board 1 is still there
+    response = get("/boards/1", TIMEOUT)
+    assert(response.status == 200)
+  }
+
+  test("get all players on board empty - success") {
+
+    //create board 1
+    var response = put("/boards/1", TIMEOUT)
+    assert(response.status == 201)
+
+    //get all players on board
+    response = get("/boards/1/players", TIMEOUT)
+    assert(response.status == 200)
+
+    //check if list it empty
+    var obj = parse(response.body).extract[List[PlayerLocation]]
+    assert(obj.isEmpty)
+  }
+
+  test("put/get/delete player on board - success") {
+
+    //create board 1
+    var response = put("/boards/1", TIMEOUT)
+    assert(response.status == 201)
+
+    //put player on board
+    response = put("/boards/1/players/mustermann", TIMEOUT)
+    assert(response.status == 201)
+
+    //check if player is on board
+    response = get("/boards/1/players/mustermann", TIMEOUT)
+    assert(response.status == 200)
+
+    //get all players on board
+    response = get("/boards/1/players", TIMEOUT)
+    assert(response.status == 200)
+
+    //check if list contains one player
+    var obj = parse(response.body).extract[List[PlayerLocation]]
+    assert(obj.size == 1)
+
+    //remove players from board
+    response = delete("/boards/1/players/mustermann", TIMEOUT)
+    assert(response.status == 200)
+
+    //get all players on board
+    response = get("/boards/1/players", TIMEOUT)
+    assert(response.status == 200)
+
+    //check if list is emtpy
+    obj = parse(response.body).extract[List[PlayerLocation]]
+    assert(obj.isEmpty)
+  }
+
+  //@TODO Ich glaub es fehlen noch paar tests
 
   //  test("Würfeln und Spieler wechsel") {
   //    val name = "Mustermann"
@@ -68,11 +192,4 @@ class BoardTest extends FunSuite with BeforeAndAfter {
   //    assert(response.status == 200)
   //
   //  }
-
-  //@TODO initGame methode x players - refactoring
-
-  def createPlayer(name: String, uri_encoded: String) = {
-    var response = put("/games/1/players/" + name + "?name=" + name + "&uri=" + uri_encoded, TIMEOUT)
-    assert(response.status == 200)
-  }
 }

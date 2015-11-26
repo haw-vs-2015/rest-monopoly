@@ -29,12 +29,12 @@ class GameTest extends FunSuite with BeforeAndAfter {
   val BODY_MESSAGE = " BODY EMPTY?"
   val JSON_MESSAGE = " JSON ERROR"
   val EMPTY_MESSAGE = " SHOULD BE EMPTY"
-  val TIMEOUT = 10 seconds
+  val TIMEOUT = 100 seconds
 
   //@TODO Check if Port already used in jetty server?
   //@TODO error messages port already in use
   //Jetty server(restart) stuff
-  var server: JettyServer = JettyServer().start()
+  var server = JettyServer().startOnFreePort()
   default_url = "http://localhost:" + server.port
 
   after {
@@ -46,7 +46,7 @@ class GameTest extends FunSuite with BeforeAndAfter {
     var response = get("/games", TIMEOUT)
     assert(response.status == 200)
 
-    val obj = parse(response.body).extract[Games]
+    var obj = parse(response.body).extract[Games]
     assert(obj.games.isEmpty)
   }
 
@@ -57,9 +57,17 @@ class GameTest extends FunSuite with BeforeAndAfter {
     response = get("/games", TIMEOUT)
     assert(response.status == 200)
 
-    val obj = parse(response.body).extract[Games]
+    var obj = parse(response.body).extract[Games]
 
     assert(!obj.games.isEmpty)
+
+    //check board created
+    response = get("/boards", TIMEOUT)
+    assert(response.status == 200)
+
+    var obj2 = parse(response.body).extract[Boards]
+
+    assert(obj2.boards.size == 1)
   }
 
   test("returns the current game status - no game available - negativ") {
@@ -124,9 +132,9 @@ class GameTest extends FunSuite with BeforeAndAfter {
   }
 
   test("joins a player to the game with name and uri") {
-    val name = "Mustermann"
-    val uri = "http://localhost:4567/player/" + name.toLowerCase()
-    val uri_encoded = URLEncoder.encode(uri, "UTF-8")
+    var name = "Mustermann"
+    var uri = "http://localhost:4567/player/" + name.toLowerCase()
+    var uri_encoded = URLEncoder.encode(uri, "UTF-8")
 
     //Create a game
     var response = post("/games", TIMEOUT)
@@ -152,12 +160,18 @@ class GameTest extends FunSuite with BeforeAndAfter {
       }
       case None => fail(response.body + BODY_MESSAGE)
     }
+
+    response = get("/boards/1/players/" + name.toLowerCase, TIMEOUT)
+    assert(response.status == 200)
+
+    var obj2 = parse(response.body).extract[PlayerLocation]
+    assert(obj2.id == name.toLowerCase)
   }
 
   test("delete a player") {
-    val name = "Mustermann"
-    val uri = "http://localhost:4567/player/" + name.toLowerCase()
-    val uri_encoded = URLEncoder.encode(uri, "UTF-8")
+    var name = "Mustermann"
+    var uri = "http://localhost:4567/player/" + name.toLowerCase()
+    var uri_encoded = URLEncoder.encode(uri, "UTF-8")
 
     //Create a game
     var response = post("/games", TIMEOUT)
@@ -197,7 +211,7 @@ class GameTest extends FunSuite with BeforeAndAfter {
   }
 
   test("get ready status tells if the player is ready to start the game ") {
-    val name = "Mustermann"
+    var name = "Mustermann"
 
     //Check ready
     var response = get("/games/1/players/" + name.toLowerCase + "/" + "ready", TIMEOUT)
@@ -213,9 +227,9 @@ class GameTest extends FunSuite with BeforeAndAfter {
   }
 
   test("signals that the player is ready to start the game / is finished with his turn") {
-    val name = "Mustermann"
-    val uri = "http://localhost:4567/player/" + name.toLowerCase()
-    val uri_encoded = URLEncoder.encode(uri, "UTF-8")
+    var name = "Mustermann"
+    var uri = "http://localhost:4567/player/" + name.toLowerCase()
+    var uri_encoded = URLEncoder.encode(uri, "UTF-8")
 
     //Create a game
     var response = post("/games", TIMEOUT)
@@ -253,9 +267,9 @@ class GameTest extends FunSuite with BeforeAndAfter {
   }
 
   test("gets the currently active player that shall take action") {
-    val name = "Mustermann"
-    val uri = "http://localhost:4567/player/" + name.toLowerCase()
-    val uri_encoded = URLEncoder.encode(uri, "UTF-8")
+    var name = "Mustermann"
+    var uri = "http://localhost:4567/player/" + name.toLowerCase()
+    var uri_encoded = URLEncoder.encode(uri, "UTF-8")
 
     //Create a game
     var response = post("/games", TIMEOUT)
@@ -276,9 +290,9 @@ class GameTest extends FunSuite with BeforeAndAfter {
   }
 
   test("gets the player holding the turn mutex") {
-    val name = "Mustermann"
-    val uri = "http://localhost:4567/player/" + name.toLowerCase()
-    val uri_encoded = URLEncoder.encode(uri, "UTF-8")
+    var name = "Mustermann"
+    var uri = "http://localhost:4567/player/" + name.toLowerCase()
+    var uri_encoded = URLEncoder.encode(uri, "UTF-8")
 
     //Create a game
     var response = post("/games", TIMEOUT)
@@ -299,12 +313,12 @@ class GameTest extends FunSuite with BeforeAndAfter {
   }
 
   test("tries to aquire the turn mutex") {
-    val name = "Mustermann"
-    val uri = "http://localhost:4567/player/" + name.toLowerCase()
-    val uri_encoded = URLEncoder.encode(uri, "UTF-8")
-    val name2 = "noplayer"
-    val uri2 = "http://localhost:4567/player/" + name2.toLowerCase()
-    val uri2_encoded = URLEncoder.encode(uri2, "UTF-8")
+    var name = "Mustermann"
+    var uri = "http://localhost:4567/player/" + name.toLowerCase()
+    var uri_encoded = URLEncoder.encode(uri, "UTF-8")
+    var name2 = "noplayer"
+    var uri2 = "http://localhost:4567/player/" + name2.toLowerCase()
+    var uri2_encoded = URLEncoder.encode(uri2, "UTF-8")
 
     //Create a game
     var response = post("/games", TIMEOUT)
@@ -328,9 +342,9 @@ class GameTest extends FunSuite with BeforeAndAfter {
   }
 
   test("gets the player holding the turn mutex2") {
-    val name = "Mustermann"
-    val uri = "http://localhost:4567/player/" + name.toLowerCase()
-    val uri_encoded = URLEncoder.encode(uri, "UTF-8")
+    var name = "Mustermann"
+    var uri = "http://localhost:4567/player/" + name.toLowerCase()
+    var uri_encoded = URLEncoder.encode(uri, "UTF-8")
 
     //Create a game
     var response = post("/games", TIMEOUT)
@@ -357,9 +371,9 @@ class GameTest extends FunSuite with BeforeAndAfter {
   }
 
   test("releases the mutex") {
-    val name = "Mustermann"
-    val uri = "http://localhost:4567/player/" + name.toLowerCase()
-    val uri_encoded = URLEncoder.encode(uri, "UTF-8")
+    var name = "Mustermann"
+    var uri = "http://localhost:4567/player/" + name.toLowerCase()
+    var uri_encoded = URLEncoder.encode(uri, "UTF-8")
 
     //Create a game
     var response = post("/games", TIMEOUT)
@@ -384,18 +398,18 @@ class GameTest extends FunSuite with BeforeAndAfter {
   }
 
   test("set player ready on lobby start game") {
-    val name1 = "Mustermann1"
-    val name2 = "Mustermann2"
-    val name3 = "Mustermann3"
-    val name4 = "Mustermann4"
-    val uri1 = "http://localhost:4567/player/" + name1.toLowerCase()
-    val uri2 = "http://localhost:4567/player/" + name2.toLowerCase()
-    val uri3 = "http://localhost:4567/player/" + name3.toLowerCase()
-    val uri4 = "http://localhost:4567/player/" + name4.toLowerCase()
-    val uri1_encoded = URLEncoder.encode(uri1, "UTF-8")
-    val uri2_encoded = URLEncoder.encode(uri2, "UTF-8")
-    val uri3_encoded = URLEncoder.encode(uri3, "UTF-8")
-    val uri4_encoded = URLEncoder.encode(uri4, "UTF-8")
+    var name1 = "Mustermann1"
+    var name2 = "Mustermann2"
+    var name3 = "Mustermann3"
+    var name4 = "Mustermann4"
+    var uri1 = "http://localhost:4567/player/" + name1.toLowerCase()
+    var uri2 = "http://localhost:4567/player/" + name2.toLowerCase()
+    var uri3 = "http://localhost:4567/player/" + name3.toLowerCase()
+    var uri4 = "http://localhost:4567/player/" + name4.toLowerCase()
+    var uri1_encoded = URLEncoder.encode(uri1, "UTF-8")
+    var uri2_encoded = URLEncoder.encode(uri2, "UTF-8")
+    var uri3_encoded = URLEncoder.encode(uri3, "UTF-8")
+    var uri4_encoded = URLEncoder.encode(uri4, "UTF-8")
 
     //Create a game
     var response = post("/games", TIMEOUT)
@@ -463,6 +477,53 @@ class GameTest extends FunSuite with BeforeAndAfter {
       case None => assert(response.body == "")
     }
   }
+
+  test("remove game if all players left") {
+    var name1 = "Mustermann1"
+    var uri1 = "http://localhost:4567/player/" + name1.toLowerCase()
+    var uri1_encoded = URLEncoder.encode(uri1, "UTF-8")
+
+    //Create a game
+    var response = post("/games", TIMEOUT)
+    assert(response.status == 201)
+
+    //check game created
+    response = get("/games", TIMEOUT)
+    assert(response.status == 200)
+
+    var obj = parse(response.body).extract[Games]
+    assert(obj.games.size == 1)
+
+    //Create a player
+    //player joins game 1
+    createPlayer(name1, uri1_encoded)
+
+    //check game still there
+    response = get("/games", TIMEOUT)
+    assert(response.status == 200)
+
+    obj = parse(response.body).extract[Games]
+    assert(obj.games.size == 1)
+
+    //delete player (leave game)
+    response = delete("/games/1/players/" + name1.toLowerCase, TIMEOUT)
+    assert(response.status == 200)
+
+    //Check player deleted
+    response = get("/games/1/players/" + name1.toLowerCase, TIMEOUT)
+    assert(response.status == 200)
+
+    //check game removed
+    response = get("/games", TIMEOUT)
+    assert(response.status == 200)
+
+    obj = parse(response.body).extract[Games]
+    assert(obj.games.isEmpty)
+
+  }
+
+
+
 
   //  test("Würfeln und Spieler wechsel") {
   //    val name = "Mustermann"

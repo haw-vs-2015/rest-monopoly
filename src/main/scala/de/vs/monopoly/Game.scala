@@ -38,37 +38,51 @@ object Games {
   def getPlayer(gameid: String, playerid: String): Option[Player] = {
     getGame(gameid) match {
       case Some(game) =>
-        println("get player")
-        game.players.filter { x => x.id == playerid }.headOption
+        println("game " + gameid + " found.")
+        game.players.find(x => x.id == playerid)
       case None =>
-        println("get player fail")
+        println("game" + gameid + " missing.")
         None
     }
   }
 
+  //@TODO event to board remove player?
   def removePlayer(gameid: String, playerid: String) {
     getGame(gameid) match {
-      case Some(game) => game.players = game.players.filterNot { x => x.id == playerid }
-      case None => println("Error removePlayer")
+      case Some(game) =>
+        val old = game.players
+        game.players = game.players.filterNot { x => x.id == playerid }
+        println("player " + playerid + " is not in the game anymore.")
+        //remove game if has no players
+        if (game.players.size < old.size && game.players.isEmpty) {
+          removeGame(gameid)
+          println("game empty and removed " + gameid)
+        }
+      case None => println("Error removePlayer " + playerid + " in game" + gameid)
     }
+  }
+
+  def removeGame(gameid: String): Unit = {
+    games -= gameid
   }
 
   //@TODO ?
   //woher weiss der Spieler das er gejoint ist? Maximum festlegen?
-  def joinGame(gameid: String, _name: String, _uri: String) {
+  def joinGame(gameid: String, _name: String, _uri: String): Option[Player] = {
     var player = Player(id = _name.toLowerCase, name = _name, uri = _uri)
     getGame(gameid) match {
       case Some(game) =>
-        println("player joinGame")
+        println("player" + player.id + " joined Game " + gameid)
         game.players +:= player
-      case None => println("Error joinGame")
+        Some(player)
+      case None => println("Error " + gameid + " joinGame"); None
     }
   }
 
   def isPlayerReady(gameid: String, playerid: String): Boolean = {
     getPlayer(gameid, playerid) match {
       case Some(player) =>
-        println("is player ready")
+        println("player " + playerid + " is ready")
         player.ready
       case None => false
     }
@@ -104,11 +118,11 @@ object Games {
     }
   }
 
-  def startGame(gameid:String) {
+  def startGame(gameid: String) {
     //@TODO
     //check if all players ready => start game
     val players = getPlayers(gameid)
-    println("try start game")
+    println("try start " + gameid + " game")
     players.foreach(p => println(p.ready))
     if (players.forall(_.ready == true)) {
       println("setPlayerReady game started")
@@ -162,7 +176,7 @@ object Games {
   def resetMutex(gameid: String) {
     getGame(gameid) match {
       case Some(game) => game.mutex = ""
-      case None => println("Error resetMutex")
+      case None => println("Error game " + gameid + " resetMutex")
     }
   }
 
@@ -175,7 +189,7 @@ object Games {
 }
 
 
-case class Components(game: String, dice: String, board: String, bank: String, broker: String, decks: String, events: String)
+case class Components(var game: String, var dice: String, var board: String, var bank: String, var broker: String, var decks: String, var events: String)
 
 case class Games(games: List[Game])
 

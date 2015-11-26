@@ -11,7 +11,6 @@ import scala.concurrent.{Await, Future}
 import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global
 
-
 object Http {
   val config = new AsyncHttpClientConfigBean().setAcceptAnyCertificate(true)
   val client = new NingWSClient(config)

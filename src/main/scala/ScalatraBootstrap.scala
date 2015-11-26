@@ -13,6 +13,7 @@ class ScalatraBootstrap extends LifeCycle {
     context mount (new DiceServlet(), "/dice/*")
     context mount (new BoardServlet(), "/boards/*")
     context mount (new GameServlet(), "/games/*")
+    //context mount (new EventServlet(), "/events/*")
     context.mount(new AsyncTestServlet(), "/test/*")
   }
 
