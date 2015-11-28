@@ -34,7 +34,8 @@ class AsyncAndSpeed extends FunSuite with BeforeAndAfter {
   //@TODO error messages port alreadyin use
   //Jetty server(restart) stuff
   var server = JettyServer().startOnFreePort()
-  default_url = "http://localhost:" + server.port
+  Global.default_url = "http://localhost:" + server.port
+  var default_url = Global.default_url
 
   after {
     AsyncTestServlet.reset()
@@ -48,12 +49,12 @@ class AsyncAndSpeed extends FunSuite with BeforeAndAfter {
     val range = 0 until 1000
     var res = List[Int]()
     for (i <- range) {
-      val response = put("/test/sync?number=" + i, TIMEOUT)
+      val response = put(default_url + "/test/sync?number=" + i, TIMEOUT)
       assert(response.status == 200)
       res :+= i
     }
 
-    get("/test/numbers") map { response =>
+    get(default_url + "/test/numbers") map { response =>
       assert(response.status == 200)
       val numbers = parse(response.body).extract[Numbers].numbers
       assert(numbers == range.toList)
@@ -65,13 +66,13 @@ class AsyncAndSpeed extends FunSuite with BeforeAndAfter {
     val range = 0 to 1000
     var res = List[Int]()
     for (i <- range) {
-      put("/test/async?number=" + i) map { response =>
+      put(default_url + "/test/async?number=" + i) map { response =>
         assert(response.status == 200)
         res :+= i
       }
     }
 
-    get("/test/numbers") map { response =>
+    get(default_url + "/test/numbers") map { response =>
       assert(response.status == 200)
       val numbers = parse(response.body).extract[Numbers].numbers
       //@INFO Koennte in manchen faellen fehlschlagen ~ Zufall

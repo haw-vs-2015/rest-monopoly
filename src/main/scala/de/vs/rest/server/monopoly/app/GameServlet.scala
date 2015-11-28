@@ -17,6 +17,8 @@ class GameServlet extends ScalatraServlet with ScalateSupport with JacksonJsonSu
 
   protected override def transformRequestBody(body: JValue): JValue = body.camelizeKeys
 
+  val TIMEOUT = 10 seconds
+
   before() {
     contentType = formats("json")
     response.headers += ("Access-Control-Allow-Origin" -> "*")
@@ -31,19 +33,22 @@ class GameServlet extends ScalatraServlet with ScalateSupport with JacksonJsonSu
 
   //Creates a new Game
   post("/") {
-    var game = Games createNewGame
-    val response = Http.put("/boards/" + game.gameid, 2 seconds)
+    var game = Games createNewGame()
+    //@TODO Ask yellowpages for boards service url
+    var response = Http.put(Global.default_url + "/boards/" + game.gameid, TIMEOUT)
     if (response.status == 201) {
       game.components.board = "http://localhost:4567/boards"
+      Created(game)
+    } else {
+      NotFound()
     }
-    Created(game)
   }
 
   //get a Game by gameid
   get("/:gameid") {
     Games getGame (params("gameid")) match {
       case Some(game) => game
-      case None => //Gibts nicht?
+      case None => NotFound()
     }
   }
 
@@ -51,25 +56,28 @@ class GameServlet extends ScalatraServlet with ScalateSupport with JacksonJsonSu
   get("/:gameid/players") {
     Games getGame (params("gameid")) match {
       case Some(game) => game.players
-      case None => //Gibts nicht?
+      case None => NotFound()
     }
   }
 
   //get player
   get("/:gameid/players/:playerid") {
-    Games getGame (params("gameid")) match {
-      case Some(game) =>
-        game.players.find { x => x.id == params("playerid") } match {
-          case Some(player) => player
-          case None => //Gibts nicht?
-        }
-      case None => //Gibts nicht?
+    Games.getPlayer(params("gameid"), params("playerid")) match {
+      case Some(player) => player
+      case None => NotFound()
     }
   }
 
-  //start game
+  //start game gibts nicht in der api
   put("/:gameid/start") {
-    Games startGame (params("gameid"))
+    Games startGame (params("gameid")) match {
+      case Some(player) =>
+        println("tell player " + player.id + " it's his turn.")
+        println(player.uri + "/player/turn")
+        //@TODO Wenn hier put anstatt post genutzt wird, erhält man ein komisches verhalten.
+        Http.post(player.uri + "/player/turn", TIMEOUT)
+      case None => Forbidden()
+    }
   }
 
   //put player to game(join game)
@@ -77,15 +85,17 @@ class GameServlet extends ScalatraServlet with ScalateSupport with JacksonJsonSu
     Games joinGame(params("gameid"), params("name"), params("uri")) match {
       case Some(player) =>
         //put player on board
-        val response = Http.put("/boards/" + params("gameid") + "/players/" + player.id.toLowerCase, 2 seconds)
+        val response = Http.put(Global.default_url + "/boards/" + params("gameid") + "/players/" + player.id.toLowerCase, 2 seconds)
         if (response.status == 201) {
-        print("player ok")
+          println("player ok")
           Ok(player)
         } else {
-//          Games.removePlayer(params("gameid"), params("playerid"))
-//          NotFound()
+          Games.removePlayer(params("gameid"), params("playerid"))
+          NotFound()
         }
-      case None => println("no player");NotFound() //Gibts nicht?
+      case None =>
+        println("no player")
+        NotFound()
     }
   }
 
@@ -108,7 +118,7 @@ class GameServlet extends ScalatraServlet with ScalateSupport with JacksonJsonSu
   get("/:gameid/players/current") {
     Games getCurrentPlayer (params("gameid")) match {
       case Some(player) => player //json fuegt keine " "hinzu
-      case None => //Gibts nicht?
+      case None => NotFound()
     }
   }
 
@@ -116,7 +126,7 @@ class GameServlet extends ScalatraServlet with ScalateSupport with JacksonJsonSu
   get("/:gameid/players/turn") {
     Games getMutex (params("gameid")) match {
       case Some(player) => player
-      case None => //Gibts nicht?
+      case None => NotFound()
     }
   }
 
@@ -143,7 +153,7 @@ class GameServlet extends ScalatraServlet with ScalateSupport with JacksonJsonSu
   get("/:gameid/chance") {
     Decks chance() match {
       case Some(card) => card
-      case None => //Gibts nicht?
+      case None => NotFound()
     }
   }
 
@@ -151,7 +161,7 @@ class GameServlet extends ScalatraServlet with ScalateSupport with JacksonJsonSu
   get("/:gameid/community") {
     Decks community() match {
       case Some(card) => card
-      case None => //Gibts nicht?
+      case None => NotFound()
     }
   }
 }

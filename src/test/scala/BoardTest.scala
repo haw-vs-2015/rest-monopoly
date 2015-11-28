@@ -2,8 +2,6 @@
  * Created by alex on 11.11.15.
  */
 
-import java.net.URLEncoder
-
 import de.vs.http.client.Http._
 import de.vs.monopoly._
 import org.json4s.jackson.JsonMethods._
@@ -28,10 +26,11 @@ class BoardTest extends FunSuite with BeforeAndAfter {
   val BODY_MESSAGE = " BODY EMPTY?"
   val JSON_MESSAGE = " JSON ERROR"
   val EMPTY_MESSAGE = " SHOULD BE EMPTY"
-  val TIMEOUT = 100 seconds
+  val TIMEOUT = 10 seconds
 
   var server = JettyServer().startOnFreePort()
-  default_url = "http://localhost:" + server.port
+  Global.default_url = "http://localhost:" + server.port
+  var default_url = Global.default_url
 
   after {
     Boards.reset()
@@ -39,7 +38,7 @@ class BoardTest extends FunSuite with BeforeAndAfter {
   }
 
   test("wuerfeln") {
-    var response = get("/dice", TIMEOUT)
+    var response = get(default_url + "/dice", TIMEOUT)
     assert(response.status == 200)
 
     var obj = parse(response.body).extract[Roll]
@@ -47,7 +46,7 @@ class BoardTest extends FunSuite with BeforeAndAfter {
   }
 
   test("get all boards") {
-    var response = get("/boards", TIMEOUT)
+    var response = get(default_url + "/boards", TIMEOUT)
     assert(response.status == 200)
 
     var obj = parse(response.body).extract[Boards]
@@ -56,21 +55,21 @@ class BoardTest extends FunSuite with BeforeAndAfter {
 
   test("find board - fail") {
     //find board
-    var response = get("/boards/1", TIMEOUT)
+    var response = get(default_url + "/boards/1", TIMEOUT)
     assert(response.status == 404)
   }
 
   test("find board - success") {
 
     //create board 1
-    var response = put("/boards/1", TIMEOUT)
+    var response = put(default_url + "/boards/1", TIMEOUT)
     assert(response.status == 201)
 
     //find board 1
-    response = get("/boards/1", TIMEOUT)
+    response = get(default_url + "/boards/1", TIMEOUT)
     assert(response.status == 200)
 
-    response = get("/boards", TIMEOUT)
+    response = get(default_url + "/boards", TIMEOUT)
     assert(response.status == 200)
 
     //check if board 1 is still available
@@ -81,52 +80,52 @@ class BoardTest extends FunSuite with BeforeAndAfter {
   test("board, gameid duplicate - fail conflict") {
 
     //create board
-    var response = put("/boards/1", TIMEOUT)
+    var response = put(default_url + "/boards/1", TIMEOUT)
     assert(response.status == 201)
 
     //create same board again
-    response = put("/boards/1", TIMEOUT)
+    response = put(default_url + "/boards/1", TIMEOUT)
     assert(response.status == 409)
   }
 
   test("delete gameid(board) - success") {
 
     //create board 1
-    var response = put("/boards/1", TIMEOUT)
+    var response = put(default_url + "/boards/1", TIMEOUT)
     assert(response.status == 201)
 
     //delete board 1
-    response = delete("/boards/1", TIMEOUT)
+    response = delete(default_url + "/boards/1", TIMEOUT)
     assert(response.status == 200)
 
     //check if board 1 is deleted
-    response = get("/boards/1", TIMEOUT)
+    response = get(default_url + "/boards/1", TIMEOUT)
     assert(response.status == 404)
   }
 
   test("delete gameid(board) - fail") {
 
     //create board 1
-    var response = put("/boards/1", TIMEOUT)
+    var response = put(default_url + "/boards/1", TIMEOUT)
     assert(response.status == 201)
 
     //try to delete non available board 2
-    response = delete("/boards/2", TIMEOUT)
+    response = delete(default_url + "/boards/2", TIMEOUT)
     assert(response.status == 404)
 
     //check if board 1 is still there
-    response = get("/boards/1", TIMEOUT)
+    response = get(default_url + "/boards/1", TIMEOUT)
     assert(response.status == 200)
   }
 
   test("get all players on board empty - success") {
 
     //create board 1
-    var response = put("/boards/1", TIMEOUT)
+    var response = put(default_url + "/boards/1", TIMEOUT)
     assert(response.status == 201)
 
     //get all players on board
-    response = get("/boards/1/players", TIMEOUT)
+    response = get(default_url + "/boards/1/players", TIMEOUT)
     assert(response.status == 200)
 
     //check if list it empty
@@ -137,19 +136,19 @@ class BoardTest extends FunSuite with BeforeAndAfter {
   test("put/get/delete player on board - success") {
 
     //create board 1
-    var response = put("/boards/1", TIMEOUT)
+    var response = put(default_url + "/boards/1", TIMEOUT)
     assert(response.status == 201)
 
     //put player on board
-    response = put("/boards/1/players/mustermann", TIMEOUT)
+    response = put(default_url + "/boards/1/players/mustermann", TIMEOUT)
     assert(response.status == 201)
 
     //check if player is on board
-    response = get("/boards/1/players/mustermann", TIMEOUT)
+    response = get(default_url + "/boards/1/players/mustermann", TIMEOUT)
     assert(response.status == 200)
 
     //get all players on board
-    response = get("/boards/1/players", TIMEOUT)
+    response = get(default_url + "/boards/1/players", TIMEOUT)
     assert(response.status == 200)
 
     //check if list contains one player
@@ -157,11 +156,11 @@ class BoardTest extends FunSuite with BeforeAndAfter {
     assert(obj.size == 1)
 
     //remove players from board
-    response = delete("/boards/1/players/mustermann", TIMEOUT)
+    response = delete(default_url + "/boards/1/players/mustermann", TIMEOUT)
     assert(response.status == 200)
 
     //get all players on board
-    response = get("/boards/1/players", TIMEOUT)
+    response = get(default_url + "/boards/1/players", TIMEOUT)
     assert(response.status == 200)
 
     //check if list is emtpy

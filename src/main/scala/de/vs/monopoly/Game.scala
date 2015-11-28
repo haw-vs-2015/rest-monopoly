@@ -1,5 +1,7 @@
 package de.vs.monopoly
 
+
+
 object Games {
   //GamesFacade
 
@@ -111,24 +113,29 @@ object Games {
           }
         } else {
           //Game not started lobby
-          println("setPlayerReady lobby success")
+          println("setPlayerReady " + playerid + " lobby success")
           playerTry.ready = true
         }
-      case None => println("Error setPlayerReady")
+      case None => println("Error " + playerid + " setPlayerReady")
     }
   }
 
-  def startGame(gameid: String) {
+  def startGame(gameid: String): Option[Player] = {
     //@TODO
     //check if all players ready => start game
     val players = getPlayers(gameid)
     println("try start " + gameid + " game")
-    players.foreach(p => println(p.ready))
+//    players.foreach(p => println(p.ready))
     if (players.forall(_.ready == true)) {
       println("setPlayerReady game started")
       //@TODO hier fehlt was, direktes starten des spiels nicht erlaubt, da ready true erwartet wird
-      //players.head.ready = false
+      players.head.ready = false
       getGame(gameid).get.started = true
+      println("game " + gameid + " erfolgreich gestartet")
+      Some(players.head)
+    } else {
+      println("failed to start game " + gameid)
+      None
     }
   }
 

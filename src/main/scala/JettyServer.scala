@@ -1,9 +1,4 @@
-import java.net.BindException
-import java.util.logging.Level
-
-import de.vs.rest.server.monopoly.app.{GameServlet, BoardServlet}
 import org.eclipse.jetty.server._
-import org.eclipse.jetty.util.log.Logger
 import org.eclipse.jetty.webapp.WebAppContext
 import org.scalatra.servlet.ScalatraListener
 
@@ -41,7 +36,6 @@ case class JettyServer() {
 
     server.start()
     port = _connector.getLocalPort()
-
     this
   }
 

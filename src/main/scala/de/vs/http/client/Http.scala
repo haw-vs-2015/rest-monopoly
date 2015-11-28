@@ -4,74 +4,101 @@ package de.vs.http.client
  * Created by alex on 10.11.15.
  */
 
-import com.ning.http.client.AsyncHttpClientConfigBean
-import play.api.libs.ws.WSResponse
+import com.ning.http.client.{HttpResponseStatus, AsyncHttpClientConfigBean}
+import com.ning.http.client.providers.netty.response.NettyResponse
+import org.scalatra.RequestTimeout
+import play.api.libs.json.JsValue
+import play.api.libs.ws.{WSCookie, WSResponse}
 import play.api.libs.ws.ning.NingWSClient
 import scala.concurrent.{Await, Future}
 import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.xml.Elem
+
+case class Timeout() extends WSResponse {
+  var status = 908
+
+  override def allHeaders: Map[String, Seq[String]] = ???
+
+  override def statusText: String = "908"
+
+  override def underlying[T]: T = ???
+
+  override def xml: Elem = ???
+
+  override def body: String = ???
+
+  override def header(key: String): Option[String] = ???
+
+  override def cookie(name: String): Option[WSCookie] = ???
+
+  override def bodyAsBytes: Array[Byte] = ???
+
+  override def cookies: Seq[WSCookie] = ???
+
+  override def json: JsValue = ???
+}
 
 object Http {
   val config = new AsyncHttpClientConfigBean().setAcceptAnyCertificate(true)
   val client = new NingWSClient(config)
+
   //  val _url = "https://vs-docker.informatik.haw-hamburg.de/ports/8053/services"
-  var port = 4567
-  var default_url = "http://localhost:" + port
 
   /*
    * Async get request
    */
   def get(_url: String): Future[WSResponse] = {
-    client.url(default_url + _url).get()
+    client.url(_url).get()
   }
 
   /*
    * sync get request with timeout
    */
   def get(_url: String, timeout: Duration): WSResponse = {
-    Await.result(client.url(default_url + _url).get(), timeout)
+    handle(client.url(_url).get(), timeout)
   }
 
   /*
    * Async post request
    */
   def post(_url: String): Future[WSResponse] = {
-    client.url(default_url + _url).post("")
+    client.url(_url).post("")
   }
 
   /*
    * sync post request with timeout
    */
   def post(_url: String, timeout: Duration): WSResponse = {
-    Await.result(client.url(default_url + _url).post(""), timeout)
+    handle(client.url(_url).post(""), timeout)
   }
 
   /*
    * Async post request
    */
   def post(_url: String, body: String): Future[WSResponse] = {
-    client.url(default_url + _url).post(body)
+    client.url(_url).post(body)
   }
 
   /*
    * sync post request with timeout
    */
   def post(_url: String, body: String, timeout: Duration): WSResponse = {
-    Await.result(client.url(default_url + _url).post(body), timeout)
+    handle(client.url(_url).post(body), timeout)
   }
 
   /*
    * Async post request
    */
   def post(_url: String, params: Map[String, Seq[String]]): Future[WSResponse] = {
-    client.url(default_url + _url).post(params)
+    client.url(_url).post(params)
   }
 
   /*
    * sync post request with timeout
    */
   def post(_url: String, params: Map[String, Seq[String]], timeout: Duration): WSResponse = {
-    Await.result(client.url(default_url + _url).post(params), timeout)
+    handle(client.url(_url).post(params), timeout)
   }
 
   /*
@@ -79,42 +106,42 @@ object Http {
    */
   //POST
   def put(_url: String): Future[WSResponse] = {
-    client.url(default_url + _url).put("")
+    client.url(_url).put("")
   }
 
   /*
    * sync put request with timeout
    */
   def put(_url: String, timeout: Duration): WSResponse = {
-    Await.result(client.url(default_url + _url).put(""), timeout)
+    handle(client.url(_url).put(""), timeout)
   }
 
   /*
    * Async put request
    */
   def put(_url: String, body: String): Future[WSResponse] = {
-    client.url(default_url + _url).put(body)
+    client.url(_url).put(body)
   }
 
   /*
    * sync put request with timeout
    */
   def put(_url: String, body: String, timeout: Duration): WSResponse = {
-    Await.result(client.url(default_url + _url).put(body), timeout)
+    handle(client.url(_url).put(body), timeout)
   }
 
   /*
    * Async put request
   */
   def put(_url: String, params: Map[String, Seq[String]]): Future[WSResponse] = {
-    client.url(default_url + _url).put(params)
+    client.url(_url).put(params)
   }
 
   /*
    * sync put request with timeout
    */
   def put(_url: String, params: Map[String, Seq[String]], timeout: Duration): WSResponse = {
-    Await.result(client.url(default_url + _url).put(params), timeout)
+    handle(client.url(_url).put(params), timeout)
   }
 
   //DELETE
@@ -122,14 +149,22 @@ object Http {
    * Async DELETE request
    */
   def delete(_url: String): Future[WSResponse] = {
-    client.url(default_url + _url).delete()
+    client.url(_url).delete()
   }
 
   /*
    * sync delete request with timeout
    */
   def delete(_url: String, timeout: Duration): WSResponse = {
-    Await.result(client.url(default_url + _url).delete(), timeout)
+    handle(client.url(_url).delete(), timeout)
+  }
+
+  def handle(request: Future[WSResponse], timeout: Duration): WSResponse = {
+    try {
+      Await.result(request, timeout)
+    } catch {
+      case _: Throwable => Timeout()
+    }
   }
 
   /*

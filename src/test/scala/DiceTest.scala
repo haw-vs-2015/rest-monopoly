@@ -32,7 +32,8 @@ class DiceTest extends FunSuite with BeforeAndAfter {
   //@TODO error messages port already in use
   //Jetty server(restart) stuff
   var server = JettyServer().startOnFreePort()
-  default_url = "http://localhost:" + server.port
+  Global.default_url = "http://localhost:" + server.port
+  var default_url = Global.default_url
 
   after {
     Boards.reset()
@@ -40,7 +41,7 @@ class DiceTest extends FunSuite with BeforeAndAfter {
   }
 
   test("wuerfeln") {
-    var response = get("/dice", TIMEOUT)
+    var response = get(default_url + "/dice", TIMEOUT)
     assert(response.status == 200)
 
     val obj = parse(response.body).extract[Roll]
@@ -53,10 +54,10 @@ class DiceTest extends FunSuite with BeforeAndAfter {
   //    val uri_encoded = URLEncoder.encode(uri, "UTF-8")
   //
   //    //Create a game
-  //    post("/games", TIMEOUT)
+  //    post(default_url + "/games", TIMEOUT)
   //
   //    //Create a player
-  //    put("/games/1/players/" + name + "/" + uri_encoded, TIMEOUT)
+  //    put(default_url + "/games/1/players/" + name + "/" + uri_encoded, TIMEOUT)
   //
   //    //@TODO Player fehlt, roll erwartet Post objekt als json und nicht nur Throw
   //    var _throw = "{" +
@@ -64,7 +65,7 @@ class DiceTest extends FunSuite with BeforeAndAfter {
   //      "\"roll2\": {\"number\":42 } " +
   //      " }"
   //
-  //    var response = post("/boards/1/players/" + name.toLowerCase + "/roll", _throw, TIMEOUT)
+  //    var response = post(default_url + "/boards/1/players/" + name.toLowerCase + "/roll", _throw, TIMEOUT)
   //    assert(response.status == 200)
   //
   //  }
@@ -72,7 +73,7 @@ class DiceTest extends FunSuite with BeforeAndAfter {
   //@TODO initGame methode x players - refactoring
 
   def createPlayer(name: String, uri_encoded: String) = {
-    var response = put("/games/1/players/" + name + "?name=" + name + "&uri=" + uri_encoded, TIMEOUT)
+    var response = put(default_url + "/games/1/players/" + name + "?name=" + name + "&uri=" + uri_encoded, TIMEOUT)
     assert(response.status == 200)
   }
 }
