@@ -4,12 +4,12 @@ import org.scalatra._
 import scalate.ScalateSupport
 
 import org.json4s._
-import org.json4s.JsonDSL._
-import org.scalatra.json.{JValueResult, JacksonJsonSupport}
+import org.scalatra.json.JacksonJsonSupport
 
+import play.api.libs.ws.WSResponse
 import de.vs.monopoly._
 import scala.concurrent.duration._
-import de.vs.http.client.Http
+import de.alexholly.util.http.HttpSync
 
 class GameServlet extends ScalatraServlet with ScalateSupport with JacksonJsonSupport {
 
@@ -17,7 +17,7 @@ class GameServlet extends ScalatraServlet with ScalateSupport with JacksonJsonSu
 
   protected override def transformRequestBody(body: JValue): JValue = body.camelizeKeys
 
-  val TIMEOUT = 10 seconds
+  val TIMEOUT = 2 seconds
 
   before() {
     contentType = formats("json")
@@ -33,9 +33,15 @@ class GameServlet extends ScalatraServlet with ScalateSupport with JacksonJsonSu
 
   //Creates a new Game
   post("/") {
+    //@TODO game nur erzeugen wenn auch board erzeugt wurde
     var game = Games createNewGame()
     //@TODO Ask yellowpages for boards service url
-    var response = Http.put(Global.default_url + "/boards/" + game.gameid, TIMEOUT)
+    var response: WSResponse = null
+    if (Global.testMode) {
+      response = HttpSync.put(Global.default_url + "/boards/" + game.gameid, TIMEOUT)
+    } else {
+      response = HttpSync.put("http://localhost:4567" + "/boards/" + game.gameid, TIMEOUT)
+    }
     if (response.status == 201) {
       game.components.board = "http://localhost:4567/boards"
       Created(game)
@@ -75,7 +81,8 @@ class GameServlet extends ScalatraServlet with ScalateSupport with JacksonJsonSu
         println("tell player " + player.id + " it's his turn.")
         println(player.uri + "/player/turn")
         //@TODO Wenn hier put anstatt post genutzt wird, erhält man ein komisches verhalten.
-        Http.post(player.uri + "/player/turn", TIMEOUT)
+
+        HttpSync.post(player.uri + "/player/turn", TIMEOUT)
       case None => Forbidden()
     }
   }
@@ -85,7 +92,12 @@ class GameServlet extends ScalatraServlet with ScalateSupport with JacksonJsonSu
     Games joinGame(params("gameid"), params("name"), params("uri")) match {
       case Some(player) =>
         //put player on board
-        val response = Http.put(Global.default_url + "/boards/" + params("gameid") + "/players/" + player.id.toLowerCase, 2 seconds)
+        var response: WSResponse = null
+        if (Global.testMode) {
+          response = HttpSync.put(Global.default_url + "/boards/" + params("gameid") + "/players/" + player.id.toLowerCase, TIMEOUT)
+        } else {
+          response = HttpSync.put("http://localhost:4567" + "/boards/" + params("gameid") + "/players/" + player.id.toLowerCase, TIMEOUT)
+        }
         if (response.status == 201) {
           println("player ok")
           Ok(player)
@@ -125,8 +137,12 @@ class GameServlet extends ScalatraServlet with ScalateSupport with JacksonJsonSu
   //gets the player holding the mutex
   get("/:gameid/players/turn") {
     Games getMutex (params("gameid")) match {
-      case Some(player) => player
-      case None => NotFound()
+      case Some(playerid) =>
+        println("turn liefert " + playerid)
+        playerid
+      case None =>
+        println("niemand hat den turn")
+        NotFound()
     }
   }
 

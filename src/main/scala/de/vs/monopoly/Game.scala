@@ -1,7 +1,6 @@
 package de.vs.monopoly
 
 
-
 object Games {
   //GamesFacade
 
@@ -74,7 +73,7 @@ object Games {
     var player = Player(id = _name.toLowerCase, name = _name, uri = _uri)
     getGame(gameid) match {
       case Some(game) =>
-        println("player" + player.id + " joined Game " + gameid)
+        println("player " + player.id + " joined Game " + gameid)
         game.players +:= player
         Some(player)
       case None => println("Error " + gameid + " joinGame"); None
@@ -121,20 +120,20 @@ object Games {
   }
 
   def startGame(gameid: String): Option[Player] = {
-    //@TODO
     //check if all players ready => start game
     val players = getPlayers(gameid)
     println("try start " + gameid + " game")
-//    players.foreach(p => println(p.ready))
+    //    players.foreach(p => println(p.ready))
     if (players.forall(_.ready == true)) {
       println("setPlayerReady game started")
       //@TODO hier fehlt was, direktes starten des spiels nicht erlaubt, da ready true erwartet wird
       players.head.ready = false
+      setMutex(gameid, players.head.id)
       getGame(gameid).get.started = true
       println("game " + gameid + " erfolgreich gestartet")
       Some(players.head)
     } else {
-      println("failed to start game " + gameid)
+      println("One Player or more players are not ready " + gameid)
       None
     }
   }
@@ -158,7 +157,14 @@ object Games {
 
   def getMutex(gameid: String): Option[String] = {
     getGame(gameid) match {
-      case Some(game) => Some(game.mutex)
+      case Some(game) =>
+        println("getMutex game " + gameid)
+        if (game.mutex != "") {
+          println("getMutex game " + gameid + " mutex ist belegt " + game.mutex)
+          Some(game.mutex)
+        }else {
+          None
+        }
       case None => None
     }
   }
@@ -169,14 +175,19 @@ object Games {
     getGame(gameid) match {
       case Some(game) =>
         if (playerid == game.mutex) {
+          println(playerid + " hat den Mutex bereits")
           "200"
         } else if (game.mutex == "") {
+          println(playerid + " hat den Mutex bekommen")
           game.mutex = playerid
           "201"
         } else {
+          println("jemand anderes hat den Mutex")
           "409"
         }
-      case None => ""
+      case None =>
+        println("mutex setzen, game nicht gefunden")
+        ""
     }
   }
 

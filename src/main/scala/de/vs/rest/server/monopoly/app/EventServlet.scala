@@ -26,7 +26,9 @@
 //
 //  post("/:gameid") {
 //    val event = parsedBody.extract[Event]
-//    Ok(Event.add(params{"gameid"}))
+//    Ok(Event.add(params {
+//      "gameid"
+//    }))
 //  }
 //
 //  delete("/:eventid") {

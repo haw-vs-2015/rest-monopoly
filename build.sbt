@@ -18,7 +18,8 @@ port in container.Configuration := 4567
 
 libraryDependencies ++= Seq(
   "org.scalatest"           %% "scalatest"                      % "2.2.4",
-  "com.typesafe.play"       %% "play-ws"                        % "2.4.3" exclude("org.slf4j", "jcl-over-slf4j"),
+  "de.alexholly.util"       %% "ip-manager"                     % "0.0.1-SNAPSHOT",
+  "de.alexholly.util"       %% "http-client"                    % "0.0.1-SNAPSHOT",
   "org.scalatra"            %% "scalatra"                       % "2.3.0.RC3",
   "org.scalatra"            %% "scalatra-scalate"               % "2.3.0.RC3",
   "org.scalatra"            %% "scalatra-json"                  % "2.3.0.RC3",
@@ -26,6 +27,7 @@ libraryDependencies ++= Seq(
   "org.scalatra"            %% "scalatra-swagger-ext"           % "2.3.0.RC3",
   //"org.scalatra"            %% "scalatra-slf4j"                 % "2.3.0.RC3",
   "org.json4s"              %% "json4s-jackson"                 % "3.2.10",
+  "org.json4s"              %% "json4s-native"                  % "3.2.10",
   "org.json4s"              %% "json4s-ext"                     % "3.2.10",
   "commons-codec"            % "commons-codec"                  % "1.7",
   //"net.databinder.dispatch" %% "json4s-jackson"                 % "0.11.2",

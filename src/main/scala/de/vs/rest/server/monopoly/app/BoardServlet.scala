@@ -5,15 +5,18 @@ import org.json4s._
 import org.scalatra._
 import org.scalatra.json.JacksonJsonSupport
 import org.scalatra.scalate.ScalateSupport
+import play.api.libs.ws.WSResponse
 
 import scala.concurrent.duration._
-import de.vs.http.client.Http
+import de.alexholly.util.http.HttpSync
 
 class BoardServlet extends ScalatraServlet with ScalateSupport with JacksonJsonSupport {
 
   protected implicit val jsonFormats: Formats = DefaultFormats
 
   protected override def transformRequestBody(body: JValue): JValue = body.camelizeKeys
+
+  val TIMEOUT = 2 seconds
 
   before() {
     contentType = formats("json")
@@ -79,18 +82,33 @@ class BoardServlet extends ScalatraServlet with ScalateSupport with JacksonJsonS
 
   post("/:gameid/players/:playerid/roll") {
     //@TODO Sollte fertig sein
-    val _throw = parsedBody.extract[Throw]
-
-    var reponse = Http.get("/games/" + params("gameid") + "/players/turn", 2 seconds)
-    if (reponse.status == 200) {
-      var playerMap = parse(reponse.body).extract[Map[String, String]]
-
-      playerMap.get("id") match {
-        case Some(currPlayerid) =>
-          Boards.rolled(params("gameid"), params("playerid"), currPlayerid, _throw)
-          Created()
-        case None => NotFound()
+    println("1")
+    var response: WSResponse = null
+    if (Global.testMode) {
+      println("2")
+      response = HttpSync.get(Global.default_url + "/games/" + params("gameid") + "/players/turn", TIMEOUT)
+    } else {
+      response = HttpSync.get("http://localhost:4567" + "/games/" + params("gameid") + "/players/turn", TIMEOUT)
+    }
+    println("3")
+    if (response.status == 200) {
+      println(response.body)
+      var currPlayerid = response.body
+      println(currPlayerid)
+      println(request.body)
+      val _throw = parse(request.body).extract[Throw]
+      println(_throw)
+      Boards.rolled(params("gameid"), params("playerid"), currPlayerid, _throw) match {
+        case Some(boardstatus) =>
+          println("gerollt")
+          boardstatus
+        case None =>
+          println("roll error")
+          NotFound()
       }
+    } else {
+      println("4 " + response.status)
+      response.status
     }
   }
 }

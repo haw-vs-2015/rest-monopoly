@@ -4,7 +4,7 @@ package de.vs.monopoly
  * Created by alex on 12.11.15.
  */
 
-import de.vs.http.client.Http._
+import de.alexholly.util.http.HttpSync
 
 class TellPlayer {
 

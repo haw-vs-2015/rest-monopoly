@@ -7,8 +7,8 @@ object Boards {
   // Gewürfelter Wert
   def rolled(gameid: String, playerid: String, currPlayerid: String, _throw: Throw): Option[BoardStatus] = {
     //@TODO Holen ueber client Anfrage von games-service
-    //    Games.getCurrentPlayer(gameid) match {
-    //      case Some(player) =>
+
+    println("Aktueller spieler " + currPlayerid + " Spieler " + playerid + " will wuerfeln")
     if (currPlayerid == playerid) {
       //falls der korrekte player
       var amount = _throw.roll1.number + _throw.roll2.number
@@ -16,27 +16,32 @@ object Boards {
         case Some(board) =>
           getPlayer(gameid, playerid) match {
             case Some(playerLocation) =>
+              println("Spieler wird bewegt")
               board.fields.foreach { field =>
                 field.players = field.players.filterNot(p => p.id == playerLocation.id)
               }
+              println("Spieler wurde bewegt ")
               //@TODO Zuruecksetzen modulo...
-              playerLocation.position += amount
+              playerLocation.position += amount%40
+              println("Spieler position wurde angepasst neue position " +  + playerLocation.position)
               board.fields(playerLocation.position).players :+= playerLocation //neue position auf feld setzen
+              println("rolled board - Spieler " + playerLocation.id + " hat erfolgreich gerollt!")
               Some(BoardStatus(playerLocation, board, Event()))
-            case None => Some(BoardStatus(getPlayer(gameid, playerid).get, board, Event()))
+            case None =>
+              println("rolled board - Spieler nicht gefunden!")
+              Some(BoardStatus(getPlayer(gameid, playerid).get, board, Event()))
           }
-
-        case None => None
+        case None =>
+          println("rolled board - game nicht gefunden!")
+          None
       }
     } else {
+      println("Du bist nicht dran!")
       None
     }
     // Wer hat es gewürfelt
     // Wer hat den mutex, game fragen
     // bewegen des spielers
-
-    // println(_throw)
-    // None
   }
 
   def putPlayerToBoard(gameid: String, playerid: String): Option[String] = {
@@ -96,19 +101,26 @@ object Boards {
 
   def getPlayer(gameid: String, playerid: String) = boards.get(gameid) match {
     case Some(board) =>
-      var playerLocation: PlayerLocation = null
+      var playerLocation: Option[PlayerLocation] = None
       //@TODO kompakte schreibweise die alle faelle abdeckt suchen
       for (f <- board.fields) {
         f.players.find(x => playerid == x.id) match {
-          case Some(player) => println("spieler " + playerLocation + " wurde auf board/game " + gameid + " gefunden!")
-            playerLocation = player
-          case None => None
+          case Some(player) =>
+            println("spieler " + player + " wurde auf board/game " + gameid + " gefunden!")
+            playerLocation = Some(player)
+          case None =>
+            if(playerLocation == None)
+              playerLocation = None
         }
       }
-
-      Some(playerLocation)
+      //logging
+      playerLocation match {
+        case Some(ploc) => println("Spieler " + ploc.id + " wird geliefert")
+        case None => println("Spieler " + playerid + " wurde auf board " + gameid + " nicht gefunden")
+      }
+      playerLocation
     case None =>
-      println("spieler " + playerid + " konnte nicht gefunden werden board/game " + gameid + " NotFound!")
+      println("boards - board/game " + gameid + " NotFound!")
       None
   }
 

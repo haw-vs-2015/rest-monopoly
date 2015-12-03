@@ -5,4 +5,5 @@ package de.vs.monopoly
  */
 object Global {
   var default_url = ""
+  var testMode = false
 }

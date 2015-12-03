@@ -7,11 +7,10 @@ import de.vs.monopoly._
 import org.json4s._
 import org.json4s.jackson.JsonMethods._
 import org.json4s.DefaultFormats
-import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import org.scalatest._
 import play.api.libs.ws.WSResponse
 import scala.concurrent.duration._
-import de.vs.http.client.Http._
+import de.alexholly.util.http.HttpSync._
 
 //@TODO
 /*
@@ -33,9 +32,10 @@ class GameTest extends FunSuite with BeforeAndAfter {
 
   var server = JettyServer().startOnFreePort()
   Global.default_url = "http://localhost:" + server.port
+  Global.testMode = true
   var default_url = Global.default_url
 
-  after {
+  before {
     Boards.reset()
     Games.reset()
   }
@@ -113,7 +113,7 @@ class GameTest extends FunSuite with BeforeAndAfter {
 
   test("joins a player to the game with name and uri") {
     var name = "Mustermann"
-    var uri = "http://localhost:4567"
+    var uri = "http://localhost:" + server.port
     var uri_encoded = URLEncoder.encode(uri, "UTF-8")
 
     //Create a game
@@ -150,7 +150,7 @@ class GameTest extends FunSuite with BeforeAndAfter {
 
   test("delete a player") {
     var name = "Mustermann"
-    var uri = "http://localhost:4567"
+    var uri = "http://localhost:" + server.port
     var uri_encoded = URLEncoder.encode(uri, "UTF-8")
 
     //Create a game
@@ -201,7 +201,7 @@ class GameTest extends FunSuite with BeforeAndAfter {
 
   test("signals that the player is ready to start the game / is finished with his turn") {
     var name = "Mustermann"
-    var uri = "http://localhost:4567"
+    var uri = "http://localhost:" + server.port
     var uri_encoded = URLEncoder.encode(uri, "UTF-8")
 
     //Create a game
@@ -241,7 +241,7 @@ class GameTest extends FunSuite with BeforeAndAfter {
 
   test("gets the currently active player that shall take action") {
     var name = "Mustermann"
-    var uri = "http://localhost:4567"
+    var uri = "http://localhost:" + server.port
     var uri_encoded = URLEncoder.encode(uri, "UTF-8")
 
     //Create a game
@@ -262,9 +262,9 @@ class GameTest extends FunSuite with BeforeAndAfter {
     }
   }
 
-  test("gets the player holding the turn mutex") {
+  test("gets the player holding the turn mutex - negativ") {
     var name = "Mustermann"
-    var uri = "http://localhost:4567"
+    var uri = "http://localhost:" + server.port
     var uri_encoded = URLEncoder.encode(uri, "UTF-8")
 
     //Create a game
@@ -275,22 +275,15 @@ class GameTest extends FunSuite with BeforeAndAfter {
     createPlayer(name, uri_encoded)
 
     response = get(default_url + "/games/1/players/turn", TIMEOUT)
-    assert(response.status == 200)
-    parseOpt(response.body) match {
-      case Some(json) => json.extractOpt[String] match {
-        case Some(playerid) => fail("Error, keiner hat den Mutex " + json)
-        case None => fail(json + JSON_MESSAGE)
-      }
-      case None => assert(response.body == "")
-    }
+    assert(response.status == 404) //Noone has the mutex
   }
 
   test("tries to aquire the turn mutex") {
     var name = "Mustermann"
-    var uri = "http://localhost:4567"
+    var uri = "http://localhost:" + server.port
     var uri_encoded = URLEncoder.encode(uri, "UTF-8")
     var name2 = "noplayer"
-    var uri2 = "http://localhost:4567"
+    var uri2 = "http://localhost:" + server.port
     var uri2_encoded = URLEncoder.encode(uri2, "UTF-8")
 
     //Create a game
@@ -316,7 +309,7 @@ class GameTest extends FunSuite with BeforeAndAfter {
 
   test("gets the player holding the turn mutex2") {
     var name = "Mustermann"
-    var uri = "http://localhost:4567"
+    var uri = "http://localhost:" + server.port
     var uri_encoded = URLEncoder.encode(uri, "UTF-8")
 
     //Create a game
@@ -344,30 +337,7 @@ class GameTest extends FunSuite with BeforeAndAfter {
   }
 
   test("releases the mutex") {
-    var name = "Mustermann"
-    var uri = "http://localhost:4567"
-    var uri_encoded = URLEncoder.encode(uri, "UTF-8")
 
-    //Create a game
-    var response = post(default_url + "/games", TIMEOUT)
-    assert(response.status == 201)
-
-    //Create a player
-    createPlayer(name, uri_encoded)
-
-    response = delete(default_url + "/games/1/players/turn", TIMEOUT)
-    assert(response.status == 200)
-
-    response = get(default_url + "/games/1/players/turn", TIMEOUT)
-    assert(response.status == 200)
-
-    parseOpt(response.body) match {
-      case Some(json) => json.extractOpt[String] match {
-        case Some(playerid) => fail("Error, keiner hat den Mutex " + json)
-        case None => fail(json + JSON_MESSAGE)
-      }
-      case None => assert(response.body == "")
-    }
   }
 
   test("set player ready on lobby start game") {
@@ -375,10 +345,10 @@ class GameTest extends FunSuite with BeforeAndAfter {
     var name2 = "Mustermann2"
     var name3 = "Mustermann3"
     var name4 = "Mustermann4"
-    var uri1 = "http://localhost:4567"
-    var uri2 = "http://localhost:4567"
-    var uri3 = "http://localhost:4567"
-    var uri4 = "http://localhost:4567"
+    var uri1 = "http://localhost:" + server.port
+    var uri2 = "http://localhost:" + server.port
+    var uri3 = "http://localhost:" + server.port
+    var uri4 = "http://localhost:" + server.port
     var uri1_encoded = URLEncoder.encode(uri1, "UTF-8")
     var uri2_encoded = URLEncoder.encode(uri2, "UTF-8")
     var uri3_encoded = URLEncoder.encode(uri3, "UTF-8")
@@ -453,7 +423,7 @@ class GameTest extends FunSuite with BeforeAndAfter {
 
   test("remove game if all players left") {
     var name1 = "Mustermann1"
-    var uri1 = "http://localhost:4567/player/" + name1.toLowerCase()
+    var uri1 = "http://localhost:" + server.port
     var uri1_encoded = URLEncoder.encode(uri1, "UTF-8")
 
     //Create a game
@@ -495,30 +465,7 @@ class GameTest extends FunSuite with BeforeAndAfter {
 
   }
 
-  //  test("Würfeln und Spieler wechsel") {
-  //    val name = "Mustermann"
-  //    val uri = "http://localhost:4567/player/" + name.toLowerCase()
-  //    val uri_encoded = URLEncoder.encode(uri, "UTF-8")
-  //
-  //    //Create a game
-  //    post("/games", TIMEOUT)
-  //
-  //    //Create a player
-  //    put("/games/1/players/" + name + "/" + uri_encoded, TIMEOUT)
-  //
-  //    //@TODO Player fehlt, roll erwartet Post objekt als json und nicht nur Throw
-  //    var _throw = "{" +
-  //      "\"roll1\": {\"number\":21 }," +
-  //      "\"roll2\": {\"number\":42 } " +
-  //      " }"
-  //
-  //    var response = post("/boards/1/players/" + name.toLowerCase + "/roll", _throw, TIMEOUT)
-  //    assert(response.status == 200)
-  //
-  //  }
-
   //@TODO initGame methode x players - refactoring
-
   def createPlayer(name: String, uri_encoded: String) = {
     var response = put(Global.default_url + "/games/1/players/" + name + "?name=" + name + "&uri=" + uri_encoded, TIMEOUT)
     assert(response.status == 200)

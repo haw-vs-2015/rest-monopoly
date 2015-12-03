@@ -2,12 +2,13 @@
  * Created by alex on 11.11.15.
  */
 
-import de.vs.http.client.Http._
+import de.alexholly.util.http.HttpSync._
 import de.vs.monopoly._
+import org.json4s._
 import org.json4s.jackson.JsonMethods._
-import org.json4s.{DefaultFormats, _}
+import org.json4s.DefaultFormats
 import org.scalatest._
-
+import java.net.URLEncoder
 import scala.concurrent.duration._
 
 //@TODO
@@ -30,6 +31,7 @@ class BoardTest extends FunSuite with BeforeAndAfter {
 
   var server = JettyServer().startOnFreePort()
   Global.default_url = "http://localhost:" + server.port
+  Global.testMode = true
   var default_url = Global.default_url
 
   after {
@@ -168,27 +170,64 @@ class BoardTest extends FunSuite with BeforeAndAfter {
     assert(obj.isEmpty)
   }
 
-  //@TODO Ich glaub es fehlen noch paar tests
+  test("Würfeln und Spieler wechsel") {
+    var name1 = "Mustermann1"
+    var name2 = "Mustermann2"
+    var name3 = "Mustermann3"
+    var name4 = "Mustermann4"
+    var uri1 = "http://localhost:" + server.port
+    var uri2 = "http://localhost:" + server.port
+    var uri3 = "http://localhost:" + server.port
+    var uri4 = "http://localhost:" + server.port
+    var uri1_encoded = URLEncoder.encode(uri1, "UTF-8")
+    var uri2_encoded = URLEncoder.encode(uri2, "UTF-8")
+    var uri3_encoded = URLEncoder.encode(uri3, "UTF-8")
+    var uri4_encoded = URLEncoder.encode(uri4, "UTF-8")
 
-  //  test("Würfeln und Spieler wechsel") {
-  //    val name = "Mustermann"
-  //    val uri = "http://localhost:4567/player/" + name.toLowerCase()
-  //    val uri_encoded = URLEncoder.encode(uri, "UTF-8")
-  //
-  //    //Create a game
-  //    post("/games", TIMEOUT)
-  //
-  //    //Create a player
-  //    put("/games/1/players/" + name + "/" + uri_encoded, TIMEOUT)
-  //
-  //    //@TODO Player fehlt, roll erwartet Post objekt als json und nicht nur Throw
-  //    var _throw = "{" +
-  //      "\"roll1\": {\"number\":21 }," +
-  //      "\"roll2\": {\"number\":42 } " +
-  //      " }"
-  //
-  //    var response = post("/boards/1/players/" + name.toLowerCase + "/roll", _throw, TIMEOUT)
-  //    assert(response.status == 200)
-  //
-  //  }
+    //Create a game
+    post(default_url + "/games", TIMEOUT)
+
+    //Create a player
+    createPlayer(name1, uri1_encoded)
+    createPlayer(name2, uri2_encoded)
+    createPlayer(name3, uri3_encoded)
+    createPlayer(name4, uri4_encoded)
+
+    //make player1 ready
+    var response = put(default_url + "/games/1/players/" + name1.toLowerCase + "/ready", TIMEOUT)
+    assert(response.status == 200)
+
+    //make player2 ready
+    response = put(default_url + "/games/1/players/" + name2.toLowerCase + "/ready", TIMEOUT)
+    assert(response.status == 200)
+
+    //make player3 ready
+    response = put(default_url + "/games/1/players/" + name3.toLowerCase + "/ready", TIMEOUT)
+    assert(response.status == 200)
+
+    //make player4 ready
+    response = put(default_url + "/games/1/players/" + name4.toLowerCase + "/ready", TIMEOUT)
+    assert(response.status == 200)
+
+    //start game
+    response = put(default_url + "/games/1/start", TIMEOUT)
+    assert(response.status == 200)
+
+    //@TODO Player fehlt, roll erwartet Post objekt als json und nicht nur Throw
+    var _throw = "{" +
+      "\"roll1\": {\"number\":21 }," +
+      "\"roll2\": {\"number\":42 } " +
+      " }"
+
+    response = post(default_url + "/boards/1/players/" + name4.toLowerCase + "/roll", _throw, TIMEOUT)
+    assert(response.status == 200)
+
+    //@TODO Test ob der Spieler korrekt auf dem board bewegt wurde
+  }
+
+  //@TODO Ich glaub es fehlen noch paar tests
+  def createPlayer(name: String, uri_encoded: String) = {
+    var response = put(Global.default_url + "/games/1/players/" + name + "?name=" + name + "&uri=" + uri_encoded, TIMEOUT)
+    assert(response.status == 200)
+  }
 }
