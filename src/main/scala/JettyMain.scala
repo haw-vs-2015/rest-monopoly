@@ -1,3 +1,4 @@
+import de.alexholly.util.JettyServer
 
 object JettyMain {
 

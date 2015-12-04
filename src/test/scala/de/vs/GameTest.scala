@@ -1,16 +1,20 @@
+package de.vs
+
 /**
  * Created by alex on 11.11.15.
  */
 
+import de.alexholly.util.JettyServer
+import de.vs.monopoly.logic.{Player, Game, Games, PlayerLocation, Boards, Global}
+import de.alexholly.util.http.HttpSync._
+
 import java.net.URLEncoder
-import de.vs.monopoly._
 import org.json4s._
 import org.json4s.jackson.JsonMethods._
 import org.json4s.DefaultFormats
 import org.scalatest._
 import play.api.libs.ws.WSResponse
 import scala.concurrent.duration._
-import de.alexholly.util.http.HttpSync._
 
 //@TODO
 /*
@@ -30,10 +34,25 @@ class GameTest extends FunSuite with BeforeAndAfter {
   val EMPTY_MESSAGE = " SHOULD BE EMPTY"
   val TIMEOUT = 10 seconds
 
+  //@TODO remove global stuff and if's from logic
+  //@TODO Add service Manager and ask the ip/port
   var server = JettyServer().startOnFreePort()
   Global.default_url = "http://localhost:" + server.port
   Global.testMode = true
   var default_url = Global.default_url
+
+//  //Define required services
+//  val requiredProjects = List("boards-service")
+//
+//  //Build required services
+//  for (service <- requiredProjects) {
+//    //Send HTTP signal to TestService "run build on projectname"
+//  }
+//
+//  //Start required services
+//  for (service <- requiredProjects) {
+//    //Send HTTP signal to TestService "start service"
+//  }
 
   before {
     Boards.reset()

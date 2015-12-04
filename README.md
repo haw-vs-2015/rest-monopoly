@@ -8,6 +8,32 @@ https://github.com/AlexHolly/util-scala-ws-http-client
 
 https://github.com/AlexHolly/ip-manager
 
+## Tests
+
+    ### Problem
+
+    Das ScalaTest-Framework arbeitet Standardmäßig Parralel, dies führt zu Problemen,
+
+    wenn Singletons genutzt werden und diese nach jedem Test zurücksetzt werden.
+
+    ### Lösungen
+
+    - Tests manuell einzeln nacheinander starten mit
+
+    ```sbt "test-only *testfile" ```
+
+    - Flag in der build.sbt setzen damit das ScalaTest-Framework sequenziell arbeitet.
+
+    ```parallelExecution in Test := false```
+
+    - Tests bei ```sbt assembly``` deaktivieren
+
+     ```test in assembly := {}``` zur build.sbt hinzufügen
+
+    http://www.scalatest.org/user_guide/using_scalatest_with_sbt
+
+    http://www.scala-sbt.org/0.13.5/docs/Detailed-Topics/Testing.html
+
 ## Test, Run & Build ##
 
 Test

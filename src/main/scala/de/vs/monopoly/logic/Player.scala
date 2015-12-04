@@ -1,4 +1,4 @@
-package de.vs.monopoly
+package de.vs.monopoly.logic
 
 object Players {
   

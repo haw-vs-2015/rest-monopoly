@@ -1,9 +1,13 @@
+package de.vs
+
 /**
  * Created by alex on 11.11.15.
  */
 
+import de.alexholly.util.JettyServer
 import de.alexholly.util.http.HttpSync._
-import de.vs.monopoly._
+import de.vs.monopoly.logic.{Global, Games, Roll, PlayerLocation, Boards}
+
 import org.json4s._
 import org.json4s.jackson.JsonMethods._
 import org.json4s.DefaultFormats
@@ -30,11 +34,13 @@ class BoardTest extends FunSuite with BeforeAndAfter {
   val TIMEOUT = 10 seconds
 
   var server = JettyServer().startOnFreePort()
+  //@TODO remove global stuff and if's from logic
+  //@TODO Add service Manager and ask the ip/port
   Global.default_url = "http://localhost:" + server.port
   Global.testMode = true
   var default_url = Global.default_url
 
-  after {
+  before {
     Boards.reset()
     Games.reset()
   }

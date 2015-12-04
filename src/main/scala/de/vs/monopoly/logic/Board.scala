@@ -1,4 +1,6 @@
-package de.vs.monopoly
+package de.vs.monopoly.logic
+
+import play.api.Logger
 
 object Boards {
 
@@ -8,7 +10,7 @@ object Boards {
   def rolled(gameid: String, playerid: String, currPlayerid: String, _throw: Throw): Option[BoardStatus] = {
     //@TODO Holen ueber client Anfrage von games-service
 
-    println("Aktueller spieler " + currPlayerid + " Spieler " + playerid + " will wuerfeln")
+    Logger.info("Aktueller spieler " + currPlayerid + " Spieler " + playerid + " will wuerfeln")
     if (currPlayerid == playerid) {
       //falls der korrekte player
       var amount = _throw.roll1.number + _throw.roll2.number
@@ -16,27 +18,27 @@ object Boards {
         case Some(board) =>
           getPlayer(gameid, playerid) match {
             case Some(playerLocation) =>
-              println("Spieler wird bewegt")
+              Logger.info("Spieler wird bewegt")
               board.fields.foreach { field =>
                 field.players = field.players.filterNot(p => p.id == playerLocation.id)
               }
-              println("Spieler wurde bewegt ")
+              Logger.info("Spieler wurde bewegt ")
               //@TODO Zuruecksetzen modulo...
               playerLocation.position += amount%40
-              println("Spieler position wurde angepasst neue position " +  + playerLocation.position)
+              Logger.info("Spieler position wurde angepasst neue position " +  + playerLocation.position)
               board.fields(playerLocation.position).players :+= playerLocation //neue position auf feld setzen
-              println("rolled board - Spieler " + playerLocation.id + " hat erfolgreich gerollt!")
+              Logger.info("rolled board - Spieler " + playerLocation.id + " hat erfolgreich gerollt!")
               Some(BoardStatus(playerLocation, board, Event()))
             case None =>
-              println("rolled board - Spieler nicht gefunden!")
+              Logger.info("rolled board - Spieler nicht gefunden!")
               Some(BoardStatus(getPlayer(gameid, playerid).get, board, Event()))
           }
         case None =>
-          println("rolled board - game nicht gefunden!")
+          Logger.info("rolled board - game nicht gefunden!")
           None
       }
     } else {
-      println("Du bist nicht dran!")
+      Logger.info("Du bist nicht dran!")
       None
     }
     // Wer hat es gewürfelt
@@ -49,14 +51,14 @@ object Boards {
       case Some(board) =>
         if (board.fields.isDefinedAt(0)) {
           board.fields.head.players :+= PlayerLocation(playerid, "", 0)
-          println("spieler " + playerid + " wurde dem board " + gameid + " hinzugefuegt.")
+          Logger.info("spieler " + playerid + " wurde dem board " + gameid + " hinzugefuegt.")
           Some(playerid)
         } else {
-          println("board wurde nicht korrekt initialisiert.")
+          Logger.info("board wurde nicht korrekt initialisiert.")
           None
         }
       case None =>
-        println("board " + gameid + " nicht gefunden für spieler " + playerid)
+        Logger.info("board " + gameid + " nicht gefunden für spieler " + playerid)
         None
     }
   }
@@ -66,10 +68,10 @@ object Boards {
   def addBoard(gameid: String): Option[String] = {
     if (!boards.contains(gameid)) {
       boards += (gameid -> Board(Fields().fieldConf))
-      println("board wurde für game " + gameid + " erstellt.")
+      Logger.info("board wurde für game " + gameid + " erstellt.")
       Some("")
     } else {
-      println("game " + gameid + " bereits in boards vorhanden.")
+      Logger.info("game " + gameid + " bereits in boards vorhanden.")
       None
     }
   }
@@ -78,10 +80,10 @@ object Boards {
   def deleteBoard(gameid: String): Option[String] = {
     if (boards.contains(gameid)) {
       boards -= gameid
-      println("board/game " + gameid + " wurde geloescht.")
+      Logger.info("board/game " + gameid + " wurde geloescht.")
       Some("")
     } else {
-      println("board/game" + gameid + " NotFound!")
+      Logger.info("board/game" + gameid + " NotFound!")
       None
     }
   }
@@ -92,10 +94,10 @@ object Boards {
       for (f <- board.fields) {
         f.players = f.players.filterNot(x => playerid == x.id)
       }
-      println("spieler " + playerid + " wurde von board/game" + gameid + " geloescht")
+      Logger.info("spieler " + playerid + " wurde von board/game" + gameid + " geloescht")
       Some(playerid)
     case None =>
-      println("spieler " + playerid + " konnte nicht geloescht werden board/game" + gameid + " NotFound!")
+      Logger.info("spieler " + playerid + " konnte nicht geloescht werden board/game" + gameid + " NotFound!")
       None
   }
 
@@ -106,7 +108,7 @@ object Boards {
       for (f <- board.fields) {
         f.players.find(x => playerid == x.id) match {
           case Some(player) =>
-            println("spieler " + player + " wurde auf board/game " + gameid + " gefunden!")
+            Logger.info("spieler " + player + " wurde auf board/game " + gameid + " gefunden!")
             playerLocation = Some(player)
           case None =>
             if(playerLocation == None)
@@ -115,12 +117,12 @@ object Boards {
       }
       //logging
       playerLocation match {
-        case Some(ploc) => println("Spieler " + ploc.id + " wird geliefert")
-        case None => println("Spieler " + playerid + " wurde auf board " + gameid + " nicht gefunden")
+        case Some(ploc) => Logger.info("Spieler " + ploc.id + " wird geliefert")
+        case None => Logger.info("Spieler " + playerid + " wurde auf board " + gameid + " nicht gefunden")
       }
       playerLocation
     case None =>
-      println("boards - board/game " + gameid + " NotFound!")
+      Logger.info("boards - board/game " + gameid + " NotFound!")
       None
   }
 

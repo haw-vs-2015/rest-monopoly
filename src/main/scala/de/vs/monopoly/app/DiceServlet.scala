@@ -1,6 +1,6 @@
-package de.vs.rest.server.monopoly.app
+package de.vs.monopoly.app
 
-import de.vs.monopoly._
+import de.vs.monopoly.logic.Dice
 import org.json4s._
 import org.scalatra._
 import org.scalatra.json.JacksonJsonSupport

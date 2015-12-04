@@ -1,3 +1,5 @@
+package de.alexholly.util
+
 import org.eclipse.jetty.server._
 import org.eclipse.jetty.webapp.WebAppContext
 import org.scalatra.servlet.ScalatraListener
@@ -8,6 +10,10 @@ import org.scalatra.servlet.ScalatraListener
 
 case class JettyServer() {
 
+  var server: Server = null
+  var port = 4567
+  var serverStarted = true
+
   object conf {
     val port = sys.env.get("PORT") map (_.toInt) getOrElse (4567)
     val stopTimeout = sys.env.get("STOP_TIMEOUT") map (_.toInt) getOrElse (0)
@@ -16,18 +22,11 @@ case class JettyServer() {
     val contextPath = sys.env.get("CONTEXT_PATH") getOrElse "/"
   }
 
-  var server: Server = null
-  var portOffset = 0
-  var port = 4567
-  var serverStarted = true
-
-
   def startOnFreePort(): JettyServer ={
     server = new Server()
-    var _connector = new ServerConnector(server)
+    val _connector = new ServerConnector(server)
     server.setConnectors(Array[Connector] { _connector })
 
-    val webapp = conf.webapp
     val webApp = new WebAppContext
     webApp setContextPath conf.contextPath
     webApp setResourceBase conf.webapp
@@ -42,7 +41,6 @@ case class JettyServer() {
   def startOnDefaultPort(): JettyServer = {
     server = new Server
     server setStopTimeout 0
-    //server setDumpAfterStart true
     server setStopAtShutdown true
 
     val httpConfig = new HttpConfiguration()
@@ -50,12 +48,11 @@ case class JettyServer() {
     httpConfig setSendServerVersion false
 
     val connector = new NetworkTrafficServerConnector(server, new HttpConnectionFactory(httpConfig))
-    connector setPort (conf.port + portOffset)
+    connector setPort (conf.port)
     connector setSoLingerTime 0
     connector setIdleTimeout conf.connectorIdleTimeout
     server addConnector connector
 
-    val webapp = conf.webapp
     val webApp = new WebAppContext
     webApp setContextPath conf.contextPath
     webApp setResourceBase conf.webapp
@@ -64,7 +61,7 @@ case class JettyServer() {
 
     server.start()
     serverStarted = true
-    port = (conf.port + portOffset)
+    port = (conf.port)
 
     println("started jetty on port " + port)
     this

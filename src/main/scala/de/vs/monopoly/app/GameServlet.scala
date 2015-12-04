@@ -1,15 +1,17 @@
-package de.vs.rest.server.monopoly.app
+package de.vs.monopoly.app
+
+import de.alexholly.util.http.HttpSync
+import de.vs.monopoly.logic.Games
+import de.vs.monopoly.logic.Global
+import de.vs.monopoly.logic.Decks
 
 import org.scalatra._
-import scalate.ScalateSupport
-
-import org.json4s._
 import org.scalatra.json.JacksonJsonSupport
-
+import org.json4s._
+import scalate.ScalateSupport
 import play.api.libs.ws.WSResponse
-import de.vs.monopoly._
+
 import scala.concurrent.duration._
-import de.alexholly.util.http.HttpSync
 
 class GameServlet extends ScalatraServlet with ScalateSupport with JacksonJsonSupport {
 
@@ -78,8 +80,6 @@ class GameServlet extends ScalatraServlet with ScalateSupport with JacksonJsonSu
   put("/:gameid/start") {
     Games startGame (params("gameid")) match {
       case Some(player) =>
-        println("tell player " + player.id + " it's his turn.")
-        println(player.uri + "/player/turn")
         //@TODO Wenn hier put anstatt post genutzt wird, erhält man ein komisches verhalten.
 
         HttpSync.post(player.uri + "/player/turn", TIMEOUT)
@@ -99,14 +99,12 @@ class GameServlet extends ScalatraServlet with ScalateSupport with JacksonJsonSu
           response = HttpSync.put("http://localhost:4567" + "/boards/" + params("gameid") + "/players/" + player.id.toLowerCase, TIMEOUT)
         }
         if (response.status == 201) {
-          println("player ok")
           Ok(player)
         } else {
           Games.removePlayer(params("gameid"), params("playerid"))
           NotFound()
         }
       case None =>
-        println("no player")
         NotFound()
     }
   }
@@ -138,10 +136,8 @@ class GameServlet extends ScalatraServlet with ScalateSupport with JacksonJsonSu
   get("/:gameid/players/turn") {
     Games getMutex (params("gameid")) match {
       case Some(playerid) =>
-        println("turn liefert " + playerid)
         playerid
       case None =>
-        println("niemand hat den turn")
         NotFound()
     }
   }

@@ -1,4 +1,4 @@
-//package de.vs.monopoly
+//package de.vs.monopoly.logic
 //
 ///**
 // * Created by alex on 23.11.15.

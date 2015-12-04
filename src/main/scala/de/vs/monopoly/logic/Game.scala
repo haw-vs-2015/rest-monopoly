@@ -1,5 +1,6 @@
-package de.vs.monopoly
+package de.vs.monopoly.logic
 
+import play.api.Logger
 
 object Games {
   //GamesFacade
@@ -28,7 +29,7 @@ object Games {
 
     var game = Game(components = _components)
     games += (game.gameid -> game)
-    println("created game")
+    Logger.info("created game")
     game
   }
 
@@ -39,10 +40,10 @@ object Games {
   def getPlayer(gameid: String, playerid: String): Option[Player] = {
     getGame(gameid) match {
       case Some(game) =>
-        println("game " + gameid + " found.")
+        Logger.info("game " + gameid + " found.")
         game.players.find(x => x.id == playerid)
       case None =>
-        println("game" + gameid + " missing.")
+        Logger.info("game" + gameid + " missing.")
         None
     }
   }
@@ -53,13 +54,13 @@ object Games {
       case Some(game) =>
         val old = game.players
         game.players = game.players.filterNot { x => x.id == playerid }
-        println("player " + playerid + " is not in the game anymore.")
+        Logger.info("player " + playerid + " is not in the game anymore.")
         //remove game if has no players
         if (game.players.size < old.size && game.players.isEmpty) {
           removeGame(gameid)
-          println("game empty and removed " + gameid)
+          Logger.info("game empty and removed " + gameid)
         }
-      case None => println("Error removePlayer " + playerid + " in game" + gameid)
+      case None => Logger.info("Error removePlayer " + playerid + " in game" + gameid)
     }
   }
 
@@ -73,17 +74,17 @@ object Games {
     var player = Player(id = _name.toLowerCase, name = _name, uri = _uri)
     getGame(gameid) match {
       case Some(game) =>
-        println("player " + player.id + " joined Game " + gameid)
+        Logger.info("player " + player.id + " joined Game " + gameid)
         game.players +:= player
         Some(player)
-      case None => println("Error " + gameid + " joinGame"); None
+      case None => Logger.info("Error " + gameid + " joinGame"); None
     }
   }
 
   def isPlayerReady(gameid: String, playerid: String): Boolean = {
     getPlayer(gameid, playerid) match {
       case Some(player) =>
-        println("player " + playerid + " is ready")
+        Logger.info("player " + playerid + " is ready")
         player.ready
       case None => false
     }
@@ -112,28 +113,28 @@ object Games {
           }
         } else {
           //Game not started lobby
-          println("setPlayerReady " + playerid + " lobby success")
+          Logger.info("setPlayerReady " + playerid + " lobby success")
           playerTry.ready = true
         }
-      case None => println("Error " + playerid + " setPlayerReady")
+      case None => Logger.info("Error " + playerid + " setPlayerReady")
     }
   }
 
   def startGame(gameid: String): Option[Player] = {
     //check if all players ready => start game
     val players = getPlayers(gameid)
-    println("try start " + gameid + " game")
+    Logger.info("try start " + gameid + " game")
     //    players.foreach(p => println(p.ready))
     if (players.forall(_.ready == true)) {
-      println("setPlayerReady game started")
+      Logger.info("setPlayerReady game started")
       //@TODO hier fehlt was, direktes starten des spiels nicht erlaubt, da ready true erwartet wird
       players.head.ready = false
       setMutex(gameid, players.head.id)
       getGame(gameid).get.started = true
-      println("game " + gameid + " erfolgreich gestartet")
+      Logger.info("game " + gameid + " erfolgreich gestartet")
       Some(players.head)
     } else {
-      println("One Player or more players are not ready " + gameid)
+      Logger.info("One Player or more players are not ready " + gameid)
       None
     }
   }
@@ -158,9 +159,9 @@ object Games {
   def getMutex(gameid: String): Option[String] = {
     getGame(gameid) match {
       case Some(game) =>
-        println("getMutex game " + gameid)
+        Logger.info("getMutex game " + gameid)
         if (game.mutex != "") {
-          println("getMutex game " + gameid + " mutex ist belegt " + game.mutex)
+          Logger.info("getMutex game " + gameid + " mutex ist belegt " + game.mutex)
           Some(game.mutex)
         }else {
           None
@@ -175,18 +176,18 @@ object Games {
     getGame(gameid) match {
       case Some(game) =>
         if (playerid == game.mutex) {
-          println(playerid + " hat den Mutex bereits")
+          Logger.info(playerid + " hat den Mutex bereits")
           "200"
         } else if (game.mutex == "") {
-          println(playerid + " hat den Mutex bekommen")
+          Logger.info(playerid + " hat den Mutex bekommen")
           game.mutex = playerid
           "201"
         } else {
-          println("jemand anderes hat den Mutex")
+          Logger.info("jemand anderes hat den Mutex")
           "409"
         }
       case None =>
-        println("mutex setzen, game nicht gefunden")
+        Logger.info("mutex setzen, game nicht gefunden")
         ""
     }
   }
@@ -194,7 +195,7 @@ object Games {
   def resetMutex(gameid: String) {
     getGame(gameid) match {
       case Some(game) => game.mutex = ""
-      case None => println("Error game " + gameid + " resetMutex")
+      case None => Logger.info("Error game " + gameid + " resetMutex")
     }
   }
 

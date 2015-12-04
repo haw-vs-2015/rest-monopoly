@@ -1,4 +1,4 @@
-package de.vs.rest.server.monopoly.app
+package de.vs.monopoly.app
 
 import org.json4s._
 import org.scalatra._

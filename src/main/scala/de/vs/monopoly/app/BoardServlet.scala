@@ -1,6 +1,8 @@
-package de.vs.rest.server.monopoly.app
+package de.vs.monopoly.app
 
-import de.vs.monopoly._
+import de.vs.monopoly.logic.Global
+import de.vs.monopoly.logic.Boards
+import de.vs.monopoly.logic.Throw
 import org.json4s._
 import org.scalatra._
 import org.scalatra.json.JacksonJsonSupport
@@ -58,7 +60,6 @@ class BoardServlet extends ScalatraServlet with ScalateSupport with JacksonJsonS
   put("/:gameid/players/:playerid") {
     Boards.putPlayerToBoard(params("gameid"), params("playerid")) match {
       case Some(playerid) =>
-
         Created()
       case None => NotFound()
     }
@@ -81,33 +82,22 @@ class BoardServlet extends ScalatraServlet with ScalateSupport with JacksonJsonS
   }
 
   post("/:gameid/players/:playerid/roll") {
-    //@TODO Sollte fertig sein
-    println("1")
     var response: WSResponse = null
     if (Global.testMode) {
-      println("2")
       response = HttpSync.get(Global.default_url + "/games/" + params("gameid") + "/players/turn", TIMEOUT)
     } else {
       response = HttpSync.get("http://localhost:4567" + "/games/" + params("gameid") + "/players/turn", TIMEOUT)
     }
-    println("3")
     if (response.status == 200) {
-      println(response.body)
       var currPlayerid = response.body
-      println(currPlayerid)
-      println(request.body)
       val _throw = parse(request.body).extract[Throw]
-      println(_throw)
       Boards.rolled(params("gameid"), params("playerid"), currPlayerid, _throw) match {
         case Some(boardstatus) =>
-          println("gerollt")
           boardstatus
         case None =>
-          println("roll error")
           NotFound()
       }
     } else {
-      println("4 " + response.status)
       response.status
     }
   }

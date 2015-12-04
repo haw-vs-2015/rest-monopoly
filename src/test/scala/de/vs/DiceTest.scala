@@ -1,9 +1,13 @@
+package de.vs
+
 /**
  * Created by alex on 11.11.15.
  */
 
+import de.alexholly.util.JettyServer
 import de.alexholly.util.http.HttpSync._
-import de.vs.monopoly._
+import de.vs.monopoly.logic.{Games, Global, Boards, Roll}
+
 import org.json4s.jackson.JsonMethods._
 import org.json4s.DefaultFormats
 import org.scalatest._
@@ -28,9 +32,8 @@ class DiceTest extends FunSuite with BeforeAndAfter {
   val EMPTY_MESSAGE = " SHOULD BE EMPTY"
   val TIMEOUT = 10 seconds
 
-  //@TODO Check if Port already used in jetty server?
-  //@TODO error messages port already in use
-  //Jetty server(restart) stuff
+  //@TODO remove global stuff and if's from logic
+  //@TODO Add service Manager and ask the ip/port
   var server = JettyServer().startOnFreePort()
   Global.default_url = "http://localhost:" + server.port
   Global.testMode = true
