@@ -18,6 +18,8 @@ port in container.Configuration := 4567
 
 parallelExecution in Test := false
 
+Keys.test in assembly := {}
+
 libraryDependencies ++= Seq(
   "org.scalatest"           %% "scalatest"                      % "2.2.4",
   "de.alexholly.util"       %% "ip-manager"                     % "0.0.1-SNAPSHOT",

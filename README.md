@@ -28,7 +28,7 @@ https://github.com/AlexHolly/ip-manager
 
     - Tests bei ```sbt assembly``` deaktivieren
 
-     ```test in assembly := {}``` zur build.sbt hinzufügen
+     ```Keys.test in assembly := {}``` zur build.sbt hinzufügen
 
     http://www.scalatest.org/user_guide/using_scalatest_with_sbt
 
