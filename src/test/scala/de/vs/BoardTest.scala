@@ -13,7 +13,6 @@ import org.json4s.jackson.JsonMethods._
 import org.json4s.DefaultFormats
 import org.scalatest._
 import java.net.URLEncoder
-import scala.concurrent.duration._
 
 //@TODO
 /*
@@ -31,7 +30,7 @@ class BoardTest extends FunSuite with BeforeAndAfter {
   val BODY_MESSAGE = " BODY EMPTY?"
   val JSON_MESSAGE = " JSON ERROR"
   val EMPTY_MESSAGE = " SHOULD BE EMPTY"
-  val TIMEOUT = 10 seconds
+  val TIMEOUT = 10000
 
   var server = JettyServer().startOnFreePort()
   //@TODO remove global stuff and if's from logic
@@ -40,7 +39,7 @@ class BoardTest extends FunSuite with BeforeAndAfter {
   Global.testMode = true
   var default_url = Global.default_url
 
-  before {
+  after {
     Boards.reset()
     Games.reset()
   }
@@ -148,11 +147,11 @@ class BoardTest extends FunSuite with BeforeAndAfter {
     assert(response.status == 201)
 
     //put player on board
-    response = put(default_url + "/boards/1/players/mustermann", TIMEOUT)
+    response = put(default_url + "/boards/1/players/1", TIMEOUT)
     assert(response.status == 201)
 
     //check if player is on board
-    response = get(default_url + "/boards/1/players/mustermann", TIMEOUT)
+    response = get(default_url + "/boards/1/players/1", TIMEOUT)
     assert(response.status == 200)
 
     //get all players on board
@@ -164,7 +163,7 @@ class BoardTest extends FunSuite with BeforeAndAfter {
     assert(obj.size == 1)
 
     //remove players from board
-    response = delete(default_url + "/boards/1/players/mustermann", TIMEOUT)
+    response = delete(default_url + "/boards/1/players/1", TIMEOUT)
     assert(response.status == 200)
 
     //get all players on board
@@ -200,19 +199,19 @@ class BoardTest extends FunSuite with BeforeAndAfter {
     createPlayer(name4, uri4_encoded)
 
     //make player1 ready
-    var response = put(default_url + "/games/1/players/" + name1.toLowerCase + "/ready", TIMEOUT)
+    var response = put(default_url + "/games/1/players/" + 1 + "/ready", TIMEOUT)
     assert(response.status == 200)
 
     //make player2 ready
-    response = put(default_url + "/games/1/players/" + name2.toLowerCase + "/ready", TIMEOUT)
+    response = put(default_url + "/games/1/players/" + 2 + "/ready", TIMEOUT)
     assert(response.status == 200)
 
     //make player3 ready
-    response = put(default_url + "/games/1/players/" + name3.toLowerCase + "/ready", TIMEOUT)
+    response = put(default_url + "/games/1/players/" + 3 + "/ready", TIMEOUT)
     assert(response.status == 200)
 
     //make player4 ready
-    response = put(default_url + "/games/1/players/" + name4.toLowerCase + "/ready", TIMEOUT)
+    response = put(default_url + "/games/1/players/" + 4 + "/ready", TIMEOUT)
     assert(response.status == 200)
 
     //start game
@@ -225,7 +224,7 @@ class BoardTest extends FunSuite with BeforeAndAfter {
       "\"roll2\": {\"number\":42 } " +
       " }"
 
-    response = post(default_url + "/boards/1/players/" + name4.toLowerCase + "/roll", _throw, TIMEOUT)
+    response = post(default_url + "/boards/1/players/" + 4 + "/roll", _throw, TIMEOUT)
     assert(response.status == 200)
 
     //@TODO Test ob der Spieler korrekt auf dem board bewegt wurde

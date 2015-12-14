@@ -1,17 +1,19 @@
 package de.vs.monopoly.app
 
-import de.alexholly.util.http.HttpSync
-import de.vs.monopoly.logic.Games
-import de.vs.monopoly.logic.Global
-import de.vs.monopoly.logic.Decks
+import de.alexholly.util.http.{HttpAsync, HttpSync}
+import de.alexholly.util.tcpsocket.ServerKomponenteFacade
+import de.vs.monopoly.logic.{Players, Games, Global, Decks}
 
 import org.scalatra._
 import org.scalatra.json.JacksonJsonSupport
 import org.json4s._
+import play.api.Logger
 import scalate.ScalateSupport
 import play.api.libs.ws.WSResponse
+import org.json4s.native.Serialization.{read, write}
 
-import scala.concurrent.duration._
+import scala.util.{Failure, Success}
+import scala.concurrent.ExecutionContext.Implicits.global
 
 class GameServlet extends ScalatraServlet with ScalateSupport with JacksonJsonSupport {
 
@@ -19,7 +21,7 @@ class GameServlet extends ScalatraServlet with ScalateSupport with JacksonJsonSu
 
   protected override def transformRequestBody(body: JValue): JValue = body.camelizeKeys
 
-  val TIMEOUT = 2 seconds
+  val TIMEOUT = 2000
 
   before() {
     contentType = formats("json")
@@ -82,14 +84,23 @@ class GameServlet extends ScalatraServlet with ScalateSupport with JacksonJsonSu
       case Some(player) =>
         //@TODO Wenn hier put anstatt post genutzt wird, erhält man ein komisches verhalten.
 
-        HttpSync.post(player.uri + "/player/turn", TIMEOUT)
+        //@TODO einfache alle plaxer updaten?
+        ServerKomponenteFacade.senden(player.id, "POST /player/turn HTTP/1.1\r\n\r\n")
       case None => Forbidden()
     }
   }
 
+  //@TODO game joinen nur moeglich, wenn nicht bereits gejoint
   //put player to game(join game)
   put("/:gameid/players/:playerid") {
-    Games joinGame(params("gameid"), params("name"), params("uri")) match {
+//    print("http://" + request.getRemoteAddr + ":3560")
+//    print("http://" + request.getRequestURI + ":3560")
+//    print("http://" + request.getRequestURL + ":3560")
+//    print("http://" + request.getRemoteAddr + ":3560")
+//    print("http://" + request.getRemoteHost + ":3560")
+    var uri = "http://" + request.getRemoteAddr + ":3560"
+    //params("uri")
+    Games joinGame(params("gameid"), request.getRemoteAddr, params("name"), uri) match {
       case Some(player) =>
         //put player on board
         var response: WSResponse = null
@@ -99,6 +110,8 @@ class GameServlet extends ScalatraServlet with ScalateSupport with JacksonJsonSu
           response = HttpSync.put("http://localhost:4567" + "/boards/" + params("gameid") + "/players/" + player.id.toLowerCase, TIMEOUT)
         }
         if (response.status == 201) {
+          //sagen das ein neuer spieler gejoint ist(Service event)
+          updatePlayers()
           Ok(player)
         } else {
           Games.removePlayer(params("gameid"), params("playerid"))
@@ -109,9 +122,23 @@ class GameServlet extends ScalatraServlet with ScalateSupport with JacksonJsonSu
     }
   }
 
+  //@TODO tests muessen geschrieben werden
+  //@TODO events fehlen
   //remove player
   delete("/:gameid/players/:playerid") {
+    print(request.getRemoteHost)
     Games removePlayer(params("gameid"), params("playerid"))
+
+    //Remove player from board
+    var response: WSResponse = null
+    response = HttpSync.delete("http://localhost:4567" + "/boards/" + params("gameid") + "/players/" + params("playerid"), TIMEOUT)
+
+    //If no players in game anymore remove the board
+    Games.getGame(params("gameid")) match {
+      case Some(game) =>
+      case None => //Remove game
+        response = HttpSync.delete("http://localhost:4567" + "/boards/" + params("gameid"), TIMEOUT)
+    }
   }
 
   //is player ready
@@ -122,6 +149,15 @@ class GameServlet extends ScalatraServlet with ScalateSupport with JacksonJsonSu
   //set player "ready status"
   put("/:gameid/players/:playerid/ready") {
     Games setPlayerReady(params("gameid"), params("playerid"))
+    updatePlayers()
+  }
+
+  def updatePlayers(): Unit = {
+    var players = write(Players(Games.getGame(params("gameid")).get.players))
+    for (player <- Games.getGame(params("gameid")).get.players) {
+      var post = "POST /player/update HTTP/1.1\r\n" + "Content-Type: application/json; charset=UTF-8\r\n\r\n" + players
+      ServerKomponenteFacade.senden(player.id, post)
+    }
   }
 
   //get player of current turn
@@ -176,4 +212,5 @@ class GameServlet extends ScalatraServlet with ScalateSupport with JacksonJsonSu
       case None => NotFound()
     }
   }
+
 }

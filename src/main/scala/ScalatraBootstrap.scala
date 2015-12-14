@@ -1,9 +1,11 @@
 
 import de.alexholly.util.http.HttpSync
 import de.alexholly.util.IPManager
+import de.alexholly.util.tcpsocket.ServerKomponenteFacade
 
 import de.vs.monopoly.app._
 import de.vs.monopoly.logic.Service
+import de.vs.monopoly.service.{PingService, TestService}
 import org.json4s._
 import org.json4s.native.Serialization.write
 
@@ -22,7 +24,15 @@ class ScalatraBootstrap extends LifeCycle {
     context mount(new PlayerServlet(), "/player/*")
     context mount(new BoardServlet(), "/boards/*")
     context mount(new GameServlet(), "/games/*")
+    context mount (new MessagesServlet(), "/messages/*")
 
+    ServerKomponenteFacade.starten(3560)
+    ServerKomponenteFacade.setMaxClients(2)
+
+//    ServerKomponenteFacade.addService("name", TestService())
+    PingService()
+
+    //context mount(new PingServlet, "/connect/*")
 //    val boardService = Service("abh928boards", "Manage Board", "boards", "http://" + IPManager.getLocalIP() + ":4567/boards")
 //    val gameService = Service("abh928games", "Manage game", "games", "http://" + IPManager.getLocalIP() + ":4567/games")
 //
@@ -39,6 +49,5 @@ class ScalatraBootstrap extends LifeCycle {
 //      ("content-type" -> "application/json"))
 //    Logger.info("Erstelle GamesService  " + response.status)
 
-    //context mount (new EventServlet(), "/events/*")
   }
 }

@@ -14,7 +14,6 @@ import org.json4s.jackson.JsonMethods._
 import org.json4s.DefaultFormats
 import org.scalatest._
 import play.api.libs.ws.WSResponse
-import scala.concurrent.duration._
 
 //@TODO
 /*
@@ -32,7 +31,7 @@ class GameTest extends FunSuite with BeforeAndAfter {
   val BODY_MESSAGE = " BODY EMPTY?"
   val JSON_MESSAGE = " JSON ERROR"
   val EMPTY_MESSAGE = " SHOULD BE EMPTY"
-  val TIMEOUT = 10 seconds
+  val TIMEOUT = 10000
 
   //@TODO remove global stuff and if's from logic
   //@TODO Add service Manager and ask the ip/port
@@ -54,7 +53,7 @@ class GameTest extends FunSuite with BeforeAndAfter {
 //    //Send HTTP signal to TestService "start service"
 //  }
 
-  before {
+  after {
     Boards.reset()
     Games.reset()
   }
@@ -130,77 +129,77 @@ class GameTest extends FunSuite with BeforeAndAfter {
     assert(response.status == 404)
   }
 
-  test("joins a player to the game with name and uri") {
-    var name = "Mustermann"
-    var uri = "http://localhost:" + server.port
-    var uri_encoded = URLEncoder.encode(uri, "UTF-8")
+//  test("joins a player to the game with name and uri") {
+//    var name = "Mustermann"
+//    var uri = "http://localhost:" + server.port
+//    var uri_encoded = URLEncoder.encode(uri, "UTF-8")
+//
+//    //Create a game
+//    var response = post(default_url + "/games", TIMEOUT)
+//    assert(response.status == 201)
+//
+//    //@TODO game anfragen pruefen ob vorhanden
+//    response = get(default_url + "/games/1", TIMEOUT)
+//    assert(response.status == 200)
+//
+//    //@TODO put sollte id liefern
+//    createPlayer(name, uri_encoded)
+//
+//    response = get(default_url + "/games/1/players/" + name.toLowerCase, TIMEOUT)
+//    assert(response.status == 200)
+//
+//    parseOpt(response.body) match {
+//      case Some(json) => json.extractOpt[Player] match {
+//        case Some(player) =>
+//          assert(player.id == name.toLowerCase)
+//          assert(player.name == name)
+//          assert(player.uri == uri)
+//        case None => fail(json + JSON_MESSAGE)
+//      }
+//      case None => fail(response.body + BODY_MESSAGE)
+//    }
+//
+//    response = get(default_url + "/boards/1/players/" + name.toLowerCase, TIMEOUT)
+//    assert(response.status == 200)
+//
+//    var obj2 = parse(response.body).extract[PlayerLocation]
+//    assert(obj2.id == name.toLowerCase)
+//  }
 
-    //Create a game
-    var response = post(default_url + "/games", TIMEOUT)
-    assert(response.status == 201)
-
-    //@TODO game anfragen pruefen ob vorhanden
-    response = get(default_url + "/games/1", TIMEOUT)
-    assert(response.status == 200)
-
-    //@TODO put sollte id liefern
-    createPlayer(name, uri_encoded)
-
-    response = get(default_url + "/games/1/players/" + name.toLowerCase, TIMEOUT)
-    assert(response.status == 200)
-
-    parseOpt(response.body) match {
-      case Some(json) => json.extractOpt[Player] match {
-        case Some(player) =>
-          assert(player.id == name.toLowerCase)
-          assert(player.name == name)
-          assert(player.uri == uri)
-        case None => fail(json + JSON_MESSAGE)
-      }
-      case None => fail(response.body + BODY_MESSAGE)
-    }
-
-    response = get(default_url + "/boards/1/players/" + name.toLowerCase, TIMEOUT)
-    assert(response.status == 200)
-
-    var obj2 = parse(response.body).extract[PlayerLocation]
-    assert(obj2.id == name.toLowerCase)
-  }
-
-  test("delete a player") {
-    var name = "Mustermann"
-    var uri = "http://localhost:" + server.port
-    var uri_encoded = URLEncoder.encode(uri, "UTF-8")
-
-    //Create a game
-    var response = post(default_url + "/games", TIMEOUT)
-    assert(response.status == 201)
-
-    //@TODO put sollte id liefern spieler erstellen
-    createPlayer(name, uri_encoded)
-
-    //Check player created
-    response = get(default_url + "/games/1/players/" + name.toLowerCase, TIMEOUT)
-    assert(response.status == 200)
-    parseOpt(response.body) match {
-      case Some(json) => json.extractOpt[Player] match {
-        case Some(player) =>
-          assert(player.id == name.toLowerCase)
-          assert(player.name == name)
-          assert(player.uri == uri)
-        case None => fail(json + JSON_MESSAGE)
-      }
-      case None => fail(response.body + BODY_MESSAGE)
-    }
-
-    response = delete(default_url + "/games/1/players/" + name.toLowerCase, TIMEOUT)
-    assert(response.status == 200)
-
-    //Check player deleted
-    response = get(default_url + "/games/1/players/" + name.toLowerCase, TIMEOUT)
-    assert(response.status == 404)
-
-  }
+//  test("delete a player") {
+//    var name = "Mustermann"
+//    var uri = "http://localhost:" + server.port
+//    var uri_encoded = URLEncoder.encode(uri, "UTF-8")
+//
+//    //Create a game
+//    var response = post(default_url + "/games", TIMEOUT)
+//    assert(response.status == 201)
+//
+//    //@TODO put sollte id liefern spieler erstellen
+//    createPlayer(name, uri_encoded)
+//
+//    //Check player created
+//    response = get(default_url + "/games/1/players/" + name.toLowerCase, TIMEOUT)
+//    assert(response.status == 200)
+//    parseOpt(response.body) match {
+//      case Some(json) => json.extractOpt[Player] match {
+//        case Some(player) =>
+//          assert(player.id == name.toLowerCase)
+//          assert(player.name == name)
+//          assert(player.uri == uri)
+//        case None => fail(json + JSON_MESSAGE)
+//      }
+//      case None => fail(response.body + BODY_MESSAGE)
+//    }
+//
+//    response = delete(default_url + "/games/1/players/" + name.toLowerCase, TIMEOUT)
+//    assert(response.status == 200)
+//
+//    //Check player deleted
+//    response = get(default_url + "/games/1/players/" + name.toLowerCase, TIMEOUT)
+//    assert(response.status == 404)
+//
+//  }
 
   test("get ready status tells if the player is ready to start the game ") {
     var name = "Mustermann"
@@ -231,7 +230,7 @@ class GameTest extends FunSuite with BeforeAndAfter {
     createPlayer(name, uri_encoded)
 
     //check not ready
-    response = get(default_url + "/games/1/players/" + name.toLowerCase + "/" + "ready", TIMEOUT)
+    response = get(default_url + "/games/1/players/" + "127.0.0.1" + "/" + "ready", TIMEOUT)
     assert(response.status == 200)
 
     parseOpt(response.body) match {
@@ -243,11 +242,11 @@ class GameTest extends FunSuite with BeforeAndAfter {
     }
 
     //set ready
-    response = put(default_url + "/games/1/players/" + name.toLowerCase + "/" + "ready", TIMEOUT)
+    response = put(default_url + "/games/1/players/" + "127.0.0.1" + "/" + "ready", TIMEOUT)
     assert(response.status == 200)
 
     //check is ready
-    response = get(default_url + "/games/1/players/" + name.toLowerCase + "/" + "ready", TIMEOUT)
+    response = get(default_url + "/games/1/players/" + "127.0.0.1" + "/" + "ready", TIMEOUT)
     assert(response.status == 200)
     parseOpt(response.body) match {
       case Some(json) => json.extractOpt[Boolean] match {
@@ -274,7 +273,7 @@ class GameTest extends FunSuite with BeforeAndAfter {
     assert(response.status == 200)
     parseOpt(response.body) match {
       case Some(json) => json.extractOpt[Player] match {
-        case Some(player) => assert(player.id == name.toLowerCase)
+        case Some(player) => assert(player.id == "1")
         case None => fail(json + JSON_MESSAGE)
       }
       case None => fail(response.body + BODY_MESSAGE)
@@ -396,15 +395,15 @@ class GameTest extends FunSuite with BeforeAndAfter {
     }
 
     //make player1 ready
-    response = put(default_url + "/games/1/players/" + name1.toLowerCase + "/ready", TIMEOUT)
+    response = put(default_url + "/games/1/players/" + 1 + "/ready", TIMEOUT)
     assert(response.status == 200)
 
     //make player2 ready
-    response = put(default_url + "/games/1/players/" + name2.toLowerCase + "/ready", TIMEOUT)
+    response = put(default_url + "/games/1/players/" + 2 + "/ready", TIMEOUT)
     assert(response.status == 200)
 
     //make player3 ready
-    response = put(default_url + "/games/1/players/" + name3.toLowerCase + "/ready", TIMEOUT)
+    response = put(default_url + "/games/1/players/" + 3 + "/ready", TIMEOUT)
     assert(response.status == 200)
 
     //Check again game not started
@@ -420,7 +419,7 @@ class GameTest extends FunSuite with BeforeAndAfter {
     }
 
     //make player4 ready
-    response = put(default_url + "/games/1/players/" + name4.toLowerCase + "/ready", TIMEOUT)
+    response = put(default_url + "/games/1/players/" + 4 + "/ready", TIMEOUT)
     assert(response.status == 200)
 
     //start game
@@ -468,11 +467,11 @@ class GameTest extends FunSuite with BeforeAndAfter {
     assert(obj.games.size == 1)
 
     //delete player (leave game)
-    response = delete(default_url + "/games/1/players/" + name1.toLowerCase, TIMEOUT)
+    response = delete(default_url + "/games/1/players/" + "127.0.0.1" , TIMEOUT)
     assert(response.status == 200)
 
     //Check player deleted
-    response = get(default_url + "/games/1/players/" + name1.toLowerCase, TIMEOUT)
+    response = get(default_url + "/games/1/players/" + "127.0.0.1", TIMEOUT)
     assert(response.status == 404)
 
     //check game removed

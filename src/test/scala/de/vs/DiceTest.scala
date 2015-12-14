@@ -12,8 +12,6 @@ import org.json4s.jackson.JsonMethods._
 import org.json4s.DefaultFormats
 import org.scalatest._
 
-import scala.concurrent.duration._
-
 //@TODO
 /*
  * Alle tests müssen nach einer aktion nochmals mit einem get pruefen
@@ -30,7 +28,7 @@ class DiceTest extends FunSuite with BeforeAndAfter {
   val BODY_MESSAGE = " BODY EMPTY?"
   val JSON_MESSAGE = " JSON ERROR"
   val EMPTY_MESSAGE = " SHOULD BE EMPTY"
-  val TIMEOUT = 10 seconds
+  val TIMEOUT = 10000
 
   //@TODO remove global stuff and if's from logic
   //@TODO Add service Manager and ask the ip/port

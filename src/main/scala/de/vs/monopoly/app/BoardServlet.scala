@@ -9,7 +9,6 @@ import org.scalatra.json.JacksonJsonSupport
 import org.scalatra.scalate.ScalateSupport
 import play.api.libs.ws.WSResponse
 
-import scala.concurrent.duration._
 import de.alexholly.util.http.HttpSync
 
 class BoardServlet extends ScalatraServlet with ScalateSupport with JacksonJsonSupport {
@@ -18,7 +17,7 @@ class BoardServlet extends ScalatraServlet with ScalateSupport with JacksonJsonS
 
   protected override def transformRequestBody(body: JValue): JValue = body.camelizeKeys
 
-  val TIMEOUT = 2 seconds
+  val TIMEOUT = 2000
 
   before() {
     contentType = formats("json")

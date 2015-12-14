@@ -16,6 +16,8 @@ case class JettyServer() {
 
   object conf {
     val port = sys.env.get("PORT") map (_.toInt) getOrElse (4567)
+    //run on public ip
+    val host = sys.env.get("HOST") map (_.toString) getOrElse ("0.0.0.0")
     val stopTimeout = sys.env.get("STOP_TIMEOUT") map (_.toInt) getOrElse (0)
     val connectorIdleTimeout = sys.env.get("CONNECTOR_IDLE_TIMEOUT") map (_.toInt) getOrElse (0)
     val webapp = sys.env.get("PUBLIC") getOrElse "webapp"
@@ -49,6 +51,7 @@ case class JettyServer() {
 
     val connector = new NetworkTrafficServerConnector(server, new HttpConnectionFactory(httpConfig))
     connector setPort (conf.port)
+    connector setHost (conf.host)
     connector setSoLingerTime 0
     connector setIdleTimeout conf.connectorIdleTimeout
     server addConnector connector

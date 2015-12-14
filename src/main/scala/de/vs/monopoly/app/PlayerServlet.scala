@@ -1,7 +1,7 @@
 package de.vs.monopoly.app
 
-import de.vs.monopoly.logic.Player
-import de.vs.monopoly.logic.Place
+import de.alexholly.util.http.HttpAsync
+import de.vs.monopoly.logic.{Games, Player, Place}
 import org.json4s._
 import org.scalatra._
 import org.scalatra.json.JacksonJsonSupport
@@ -20,13 +20,23 @@ class PlayerServlet extends ScalatraServlet with ScalateSupport with JacksonJson
 
   //gets the details about the player
   get("/") {
-    Player("testPlayer", "TestPlayer", "http://localhost:4567", Place(), 0, false)
+    Player("testPlayer", "TestPlayer", "1", "http://localhost:4567", Place(), 0, false)
   }
 
   //Informs the player, that it is his turn
   post("/turn") {
     println("MyTurn")
     Ok()
+  }
+
+  //find player
+  delete("/:playerid") {
+    Games findPlayer (params("playerid")) match {
+      case Some(player) =>
+        HttpAsync.delete("http://localhost:4567" + "/games/" + player.gameid + "/players/" + player.id)
+        Ok()
+      case None => NotFound()
+    }
   }
 
   //inform a player about a new event

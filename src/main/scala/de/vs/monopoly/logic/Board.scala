@@ -24,7 +24,7 @@ object Boards {
               }
               Logger.info("Spieler wurde bewegt ")
               //@TODO Zuruecksetzen modulo...
-              playerLocation.position += amount%40
+              playerLocation.position = (playerLocation.position+amount)%40
               Logger.info("Spieler position wurde angepasst neue position " +  + playerLocation.position)
               board.fields(playerLocation.position).players :+= playerLocation //neue position auf feld setzen
               Logger.info("rolled board - Spieler " + playerLocation.id + " hat erfolgreich gerollt!")

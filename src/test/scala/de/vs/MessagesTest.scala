@@ -6,20 +6,12 @@ package de.vs
 
 import de.alexholly.util.JettyServer
 import de.alexholly.util.http.HttpSync._
-import de.vs.monopoly.logic.{Games, Global, Boards, Roll}
-
-import org.json4s.jackson.JsonMethods._
+import de.vs.monopoly.logic._
 import org.json4s.DefaultFormats
+import org.json4s.jackson.JsonMethods._
+import org.json4s.native.Serialization.write
 import org.scalatest._
 
-import scala.concurrent.duration._
-
-//@TODO
-/*
- * Alle tests müssen nach einer aktion nochmals mit einem get pruefen
- * ob die Werte wirklich gesetzt wurden, dies fehlt an vielen Stellen.
- * Testen des Status sagt nur teilweise ueber die rest Schnittstelle aus aber nicht viel ueber die Logik.
- */
 
 class MessagesTest extends FunSuite with BeforeAndAfter {
 
@@ -30,7 +22,7 @@ class MessagesTest extends FunSuite with BeforeAndAfter {
   val BODY_MESSAGE = " BODY EMPTY?"
   val JSON_MESSAGE = " JSON ERROR"
   val EMPTY_MESSAGE = " SHOULD BE EMPTY"
-  val TIMEOUT = 10 seconds
+  val TIMEOUT = 10000
 
   //@TODO remove global stuff and if's from logic
   //@TODO Add service Manager and ask the ip/port
@@ -40,15 +32,97 @@ class MessagesTest extends FunSuite with BeforeAndAfter {
   var default_url = Global.default_url
 
   after {
-    Boards.reset()
-    Games.reset()
+    Messages.reset()
   }
 
-  test("wuerfeln") {
-    var response = get(default_url + "/dice", TIMEOUT)
+  test("get all channels empty") {
+    var response = get(default_url + "/messages", TIMEOUT)
     assert(response.status == 200)
 
-    val obj = parse(response.body).extract[Roll]
-    assert((1 to 6).contains(obj.number))
+    val obj = parse(response.body).extract[Channels]
+    assert(obj.channels.size == 0)
+  }
+
+  test("get all channels one entry") {
+    val subscriber = Subscriber("Alex", "http://localhost:4567")
+    var response = post(default_url + "/messages/subscribe/test", write(subscriber), TIMEOUT)
+    assert(response.status == 200)
+
+    response = get(default_url + "/messages", TIMEOUT)
+    assert(response.status == 200)
+
+    val obj = parse(response.body).extract[Channels]
+    assert(obj.channels.size == 1)
+  }
+
+  test("add two subscriber to a channel and check if all are on the right place") {
+    //First subscriber
+    val subscriber = Subscriber("Alex", "http://localhost:4567")
+    val subscriber3 = subscriber.copy(uri=subscriber.uri+"/messages/send/test")
+
+    var response = post(default_url + "/messages/subscribe/test", write(subscriber), TIMEOUT)
+    assert(response.status == 200)
+
+    response = get(default_url + "/messages", TIMEOUT)
+    assert(response.status == 200)
+
+    var obj = parse(response.body).extract[Channels]
+    assert(obj.channels.size == 1)
+    assert(obj.channels(0).name == "test")
+    assert(obj.channels(0).subscribers.size == 1)
+    assert(obj.channels(0).subscribers(0) == subscriber3)
+
+    //Second subscriber
+    val subscriber2 = Subscriber("Mustermann", "http://localhost:4567/mustermann")
+    val subscriber4 = subscriber2.copy(uri=subscriber2.uri+"/messages/send/test")
+    response = post(default_url + "/messages/subscribe/test", write(subscriber2), TIMEOUT)
+    assert(response.status == 200)
+
+    response = get(default_url + "/messages", TIMEOUT)
+    assert(response.status == 200)
+
+    obj = parse(response.body).extract[Channels]
+    assert(obj.channels.size == 1)
+    assert(obj.channels(0).name == "test")
+    assert(obj.channels(0).subscribers.size == 2)
+    assert(obj.channels(0).subscribers(1) == subscriber4)
+  }
+
+  test("remove last subscriber and check that the channel is beeing removed") {
+    //First subscriber
+    val subscriber = Subscriber("127.0.0.1", "http://localhost:4567/alex")
+    var response = post(default_url + "/messages/subscribe/test", write(subscriber), TIMEOUT)
+    assert(response.status == 200)
+
+    response = get(default_url + "/messages", TIMEOUT)
+    assert(response.status == 200)
+
+    var obj = parse(response.body).extract[Channels]
+    assert(obj.channels.size == 1)
+
+    response = delete(default_url + "/messages/test/" + subscriber.id, TIMEOUT)
+    assert(response.status == 200)
+
+    response = get(default_url + "/messages", TIMEOUT)
+    assert(response.status == 200)
+
+    obj = parse(response.body).extract[Channels]
+    assert(obj.channels.size == 0)
+
+  }
+
+  test("send a Message to an empty non existed channel") {
+    val message = Message("Roll", "board updated", "http://localhost:4567/alex", "Das Board")
+
+    var response = post(default_url + "/messages/send/test", write(message), TIMEOUT)
+    assert(response.status == 202)
+
+    //First subscriber
+    val subscriber = Subscriber("Alex", "http://localhost:4567/alex")
+    response = post(default_url + "/messages/subscribe/test", write(subscriber), TIMEOUT)
+    assert(response.status == 200)
+
+    response = post(default_url + "/messages/send/test", write(message), TIMEOUT)
+    assert(response.status == 200)
   }
 }

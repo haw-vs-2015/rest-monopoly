@@ -2,9 +2,9 @@ package de.vs.monopoly.logic
 
 import play.api.Logger
 
+
 object Games {
   //GamesFacade
-
   //variables
   var _id = 0
   var games: Map[String, Game] = Map()
@@ -29,8 +29,23 @@ object Games {
 
     var game = Game(components = _components)
     games += (game.gameid -> game)
-    Logger.info("created game")
+    Logger.info("created game " + game.gameid)
     game
+  }
+
+  //dirty
+  def findPlayer(id: String): Option[Player] = {
+    var rs: Option[Player] = None
+    println("looking for error1")
+    for (game <- games.values) {
+      println("looking for error2")
+      game.players.find(p => p.id == id) match {
+        case Some(player) => rs = Some(player)
+        case None =>
+      }
+    }
+    println("looking for error3")
+    rs
   }
 
   def getGame(gameid: String): Option[Game] = {
@@ -56,11 +71,14 @@ object Games {
         game.players = game.players.filterNot { x => x.id == playerid }
         Logger.info("player " + playerid + " is not in the game anymore.")
         //remove game if has no players
+        //@TODO check has changed needed??
         if (game.players.size < old.size && game.players.isEmpty) {
           removeGame(gameid)
           Logger.info("game empty and removed " + gameid)
         }
-      case None => Logger.info("Error removePlayer " + playerid + " in game" + gameid)
+      case None =>
+        Logger.info("Error removePlayer " + playerid + " in game" + gameid + " game not found.")
+
     }
   }
 
@@ -70,8 +88,8 @@ object Games {
 
   //@TODO ?
   //woher weiss der Spieler das er gejoint ist? Maximum festlegen?
-  def joinGame(gameid: String, _name: String, _uri: String): Option[Player] = {
-    var player = Player(id = _name.toLowerCase, name = _name, uri = _uri)
+  def joinGame(gameid: String, _id: String, _name: String, _uri: String): Option[Player] = {
+    var player = Player(id = _id, name = _name, gameid = gameid, uri = _uri)
     getGame(gameid) match {
       case Some(game) =>
         Logger.info("player " + player.id + " joined Game " + gameid)
@@ -163,7 +181,7 @@ object Games {
         if (game.mutex != "") {
           Logger.info("getMutex game " + gameid + " mutex ist belegt " + game.mutex)
           Some(game.mutex)
-        }else {
+        } else {
           None
         }
       case None => None
@@ -202,6 +220,7 @@ object Games {
   def reset(): Unit = {
     games = Map()
     _id = 0
+    Players._id = 0
   }
 
   def apply() = new Games(games.values.toList) //getGames
