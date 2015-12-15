@@ -48,8 +48,10 @@ class GameServlet extends ScalatraServlet with ScalateSupport with JacksonJsonSu
     }
     if (response.status == 201) {
       game.components.board = "http://localhost:4567/boards"
+
       Created(game)
     } else {
+      Games.removeGame(game.gameid)
       NotFound()
     }
   }
@@ -84,8 +86,10 @@ class GameServlet extends ScalatraServlet with ScalateSupport with JacksonJsonSu
       case Some(player) =>
         //@TODO Wenn hier put anstatt post genutzt wird, erhält man ein komisches verhalten.
 
-        //@TODO einfache alle plaxer updaten?
+        //@TODO einfache alle player updaten?
         ServerKomponenteFacade.senden(player.id, "POST /player/turn HTTP/1.1\r\n\r\n")
+        startGame(params("gameid"))
+
       case None => Forbidden()
     }
   }
@@ -93,25 +97,25 @@ class GameServlet extends ScalatraServlet with ScalateSupport with JacksonJsonSu
   //@TODO game joinen nur moeglich, wenn nicht bereits gejoint
   //put player to game(join game)
   put("/:gameid/players/:playerid") {
-//    print("http://" + request.getRemoteAddr + ":3560")
-//    print("http://" + request.getRequestURI + ":3560")
-//    print("http://" + request.getRequestURL + ":3560")
-//    print("http://" + request.getRemoteAddr + ":3560")
-//    print("http://" + request.getRemoteHost + ":3560")
+    //    print("http://" + request.getRemoteAddr + ":3560")
+    //    print("http://" + request.getRequestURI + ":3560")
+    //    print("http://" + request.getRequestURL + ":3560")
+    //    print("http://" + request.getRemoteAddr + ":3560")
+    //    print("http://" + request.getRemoteHost + ":3560")
     var uri = "http://" + request.getRemoteAddr + ":3560"
-    //params("uri")
+    HttpSync.delete("http://localhost:4567" + "/games/" + params("gameid") + "/players/" + request.getRemoteAddr, TIMEOUT)
     Games joinGame(params("gameid"), request.getRemoteAddr, params("name"), uri) match {
       case Some(player) =>
         //put player on board
         var response: WSResponse = null
         if (Global.testMode) {
-          response = HttpSync.put(Global.default_url + "/boards/" + params("gameid") + "/players/" + player.id.toLowerCase, TIMEOUT)
+          response = HttpSync.put(Global.default_url + "/boards/" + params("gameid") + "/players/" + request.getRemoteAddr, TIMEOUT)
         } else {
-          response = HttpSync.put("http://localhost:4567" + "/boards/" + params("gameid") + "/players/" + player.id.toLowerCase, TIMEOUT)
+          response = HttpSync.put("http://localhost:4567" + "/boards/" + params("gameid") + "/players/" + request.getRemoteAddr, TIMEOUT)
         }
         if (response.status == 201) {
           //sagen das ein neuer spieler gejoint ist(Service event)
-          updatePlayers()
+          updatePlayers(params("gameid"))
           Ok(player)
         } else {
           Games.removePlayer(params("gameid"), params("playerid"))
@@ -149,14 +153,33 @@ class GameServlet extends ScalatraServlet with ScalateSupport with JacksonJsonSu
   //set player "ready status"
   put("/:gameid/players/:playerid/ready") {
     Games setPlayerReady(params("gameid"), params("playerid"))
-    updatePlayers()
+    updatePlayers(params("gameid"))
   }
 
-  def updatePlayers(): Unit = {
-    var players = write(Players(Games.getGame(params("gameid")).get.players))
-    for (player <- Games.getGame(params("gameid")).get.players) {
+  def startGame(gameid: String): Unit = {
+    for (player <- Games.getGame(gameid).get.players) {
+      var post = "POST /games/start HTTP/1.1\r\n" + "Content-Type: application/json; charset=UTF-8\r\n\r\n"
+      ServerKomponenteFacade.senden(player.id, post)
+    }
+  }
+
+  def updatePlayers(gameid: String): Unit = {
+    var players = write(Players(Games.getGame(gameid).get.players))
+    for (player <- Games.getGame(gameid).get.players) {
       var post = "POST /player/update HTTP/1.1\r\n" + "Content-Type: application/json; charset=UTF-8\r\n\r\n" + players
       ServerKomponenteFacade.senden(player.id, post)
+    }
+  }
+
+  def updateServers(): Unit = {
+    var games = write(Games())
+    for (game <- Games().games) {
+      if (!game.started) {
+        for (player <- game.players) {
+          var post = "POST /id/updategames HTTP/1.1\r\n" + "Content-Type: application/json; charset=UTF-8\r\n\r\n" + games
+          ServerKomponenteFacade.senden(player.id, post)
+        }
+      }
     }
   }
 

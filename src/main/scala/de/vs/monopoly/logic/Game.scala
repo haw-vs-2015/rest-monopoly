@@ -34,17 +34,14 @@ object Games {
   }
 
   //dirty
-  def findPlayer(id: String): Option[Player] = {
+  def findPlayer(playerid: String): Option[Player] = {
     var rs: Option[Player] = None
-    println("looking for error1")
     for (game <- games.values) {
-      println("looking for error2")
-      game.players.find(p => p.id == id) match {
+      game.players.find(p => p.id == playerid) match {
         case Some(player) => rs = Some(player)
         case None =>
       }
     }
-    println("looking for error3")
     rs
   }
 
@@ -92,9 +89,14 @@ object Games {
     var player = Player(id = _id, name = _name, gameid = gameid, uri = _uri)
     getGame(gameid) match {
       case Some(game) =>
-        Logger.info("player " + player.id + " joined Game " + gameid)
-        game.players +:= player
-        Some(player)
+        if (!game.started) {
+          Logger.info("player " + player.id + " joined Game " + gameid)
+          game.players +:= player
+          Some(player)
+        } else {
+          Logger.info("Error " + gameid + " cant join game, already started")
+          None
+        }
       case None => Logger.info("Error " + gameid + " joinGame"); None
     }
   }
@@ -223,7 +225,11 @@ object Games {
     Players._id = 0
   }
 
-  def apply() = new Games(games.values.toList) //getGames
+  def getGames(): List[Game] = {
+    games.values.toList
+  }
+
+  def apply() = new Games(getGames()) //getGames
 }
 
 
