@@ -10,29 +10,29 @@ https://github.com/AlexHolly/ip-manager
 
 ## Tests
 
-    ### Problem
+### Problem
 
-    Das ScalaTest-Framework arbeitet Standardmäßig Parralel, dies führt zu Problemen,
+Das ScalaTest-Framework arbeitet Standardmäßig Parralel, dies führt zu Problemen,
 
-    wenn Singletons genutzt werden und diese nach jedem Test zurücksetzt werden.
+wenn Singletons genutzt werden und diese nach jedem Test zurücksetzt werden.
 
-    ### Lösungen
+### Lösungen
 
-    - Tests manuell einzeln nacheinander starten mit
+- Tests manuell einzeln nacheinander starten mit
 
-    ```sbt "test-only *testfile" ```
+ ```sbt "test-only *testfile" ```
 
-    - Flag in der build.sbt setzen damit das ScalaTest-Framework sequenziell arbeitet.
+- Flag in der build.sbt setzen damit das ScalaTest-Framework sequenziell arbeitet.
 
-    ```parallelExecution in Test := false```
+ ```parallelExecution in Test := false```
 
-    - Tests bei ```sbt assembly``` deaktivieren
+- Tests bei ```sbt assembly``` deaktivieren
 
-     ```Keys.test in assembly := {}``` zur build.sbt hinzufügen
+ ```Keys.test in assembly := {}``` zur build.sbt hinzufügen
 
-    http://www.scalatest.org/user_guide/using_scalatest_with_sbt
+http://www.scalatest.org/user_guide/using_scalatest_with_sbt
 
-    http://www.scala-sbt.org/0.13.5/docs/Detailed-Topics/Testing.html
+http://www.scala-sbt.org/0.13.5/docs/Detailed-Topics/Testing.html
 
 ## Test, Run & Build ##
 
@@ -52,9 +52,9 @@ Build stand alone
 
     sbt assembly
 
-## Logging settings ##
+## Change logging settings ##
 
-    /resources/logback.xml -> root level
+Set the logging level with the 'root level' attribute in '/resources/logback.xml'
 
 
 [http://localhost:4567/](http://localhost:4567/)
