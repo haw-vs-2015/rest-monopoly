@@ -8,8 +8,6 @@ object Boards {
 
   // Gewürfelter Wert
   def rolled(gameid: String, playerid: String, currPlayerid: String, _throw: Throw): Option[BoardStatus] = {
-    //@TODO Holen ueber client Anfrage von games-service
-
     Logger.info("Aktueller spieler " + currPlayerid + " Spieler " + playerid + " will wuerfeln")
     if (currPlayerid == playerid) {
       //falls der korrekte player
@@ -23,7 +21,6 @@ object Boards {
                 field.players = field.players.filterNot(p => p.id == playerLocation.id)
               }
               Logger.info("Spieler wurde bewegt ")
-              //@TODO Zuruecksetzen modulo...
               playerLocation.position = (playerLocation.position+amount)%40
               Logger.info("Spieler position wurde angepasst neue position " +  + playerLocation.position)
               board.fields(playerLocation.position).players :+= playerLocation //neue position auf feld setzen

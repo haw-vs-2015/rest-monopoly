@@ -20,9 +20,23 @@ class MessagesServlet extends ScalatraServlet with ScalateSupport with JacksonJs
     response.headers += ("Access-Control-Allow-Origin" -> "*")
   }
 
+  //@TODO HTTP url, wie ist der Standard? /name1/id1/name2/id2 ?
+  //oder ist dies egal?
   //gets all Channels and subsribers for the channels
   get("/") {
     Messages.getChannels()
+  }
+
+  //@TODO needs testing
+  //gets a Channel and subsribers for that channel
+  get("/:channel") {
+    Messages.getChannel()
+  }
+
+  //@TODO needs testing
+  //gets a Subscriber and with all his subscribt channels
+  get("/subscriber/:subscriber") {
+    Messages.getSubscriber()
   }
 
   //A user subscribes a channel he is interested in.
@@ -50,8 +64,15 @@ class MessagesServlet extends ScalatraServlet with ScalateSupport with JacksonJs
     }
   }
 
+  //@TODO needs testing
   //Remove a subscriber from a channel.
   delete("/:channel/:subscriber") {
     Messages.removeSubscriber(params("channel"), params("subscriber"))
+  }
+
+  //@TODO needs testing
+  //Remove a subscriber from all channels.
+  delete("/channel/all/:subscriber") {
+    Messages.removeSubscriber(params("subscriber"))
   }
 }

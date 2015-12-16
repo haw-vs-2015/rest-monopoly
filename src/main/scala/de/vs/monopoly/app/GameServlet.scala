@@ -11,7 +11,7 @@ import play.api.Logger
 import scalate.ScalateSupport
 import play.api.libs.ws.WSResponse
 import org.json4s.native.Serialization.{read, write}
-
+import de.vs.monopoly.logic.Message
 import scala.util.{Failure, Success}
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -47,8 +47,9 @@ class GameServlet extends ScalatraServlet with ScalateSupport with JacksonJsonSu
       response = HttpSync.put("http://localhost:4567" + "/boards/" + game.gameid, TIMEOUT)
     }
     if (response.status == 201) {
+      //@TODO yellowpages zeugt funkioniert noch nicht
       game.components.board = "http://localhost:4567/boards"
-
+      updateGames()
       Created(game)
     } else {
       Games.removeGame(game.gameid)
@@ -85,6 +86,7 @@ class GameServlet extends ScalatraServlet with ScalateSupport with JacksonJsonSu
     Games startGame (params("gameid")) match {
       case Some(player) =>
         //@TODO Wenn hier put anstatt post genutzt wird, erhält man ein komisches verhalten.
+        //@TODO Wie fängt man jetty exceptions ab? Wird das überhaupt benötigt?
 
         //@TODO einfache alle player updaten?
         ServerKomponenteFacade.senden(player.id, "POST /player/turn HTTP/1.1\r\n\r\n")
@@ -92,6 +94,16 @@ class GameServlet extends ScalatraServlet with ScalateSupport with JacksonJsonSu
 
       case None => Forbidden()
     }
+  }
+
+  def startGame(gameid: String): Unit = {
+    var message = Message("SERVER", "WEIL", "EGAL", "")
+    HttpAsync.post("http://localhost:4567/messages/send/gamesstart" + gameid, write(message))
+//
+//    for (player <- Games.getGame(gameid).get.players) {
+//      var post = "POST /gamesstart HTTP/1.1\r\n" + "Content-Type: application/json; charset=UTF-8\r\n\r\n"
+//      ServerKomponenteFacade.senden(player.id, post)
+//    }
   }
 
   //@TODO game joinen nur moeglich, wenn nicht bereits gejoint
@@ -142,7 +154,13 @@ class GameServlet extends ScalatraServlet with ScalateSupport with JacksonJsonSu
       case Some(game) =>
       case None => //Remove game
         response = HttpSync.delete("http://localhost:4567" + "/boards/" + params("gameid"), TIMEOUT)
+        updateGames()
     }
+  }
+
+  def updateGames(): Unit = {
+    var message = Message("SERVER", "WEIL", "EGAL", write(Games()))
+    HttpAsync.post("http://localhost:4567/messages/send/updategames", write(message))
   }
 
   //is player ready
@@ -156,12 +174,6 @@ class GameServlet extends ScalatraServlet with ScalateSupport with JacksonJsonSu
     updatePlayers(params("gameid"))
   }
 
-  def startGame(gameid: String): Unit = {
-    for (player <- Games.getGame(gameid).get.players) {
-      var post = "POST /games/start HTTP/1.1\r\n" + "Content-Type: application/json; charset=UTF-8\r\n\r\n"
-      ServerKomponenteFacade.senden(player.id, post)
-    }
-  }
 
   def updatePlayers(gameid: String): Unit = {
     var players = write(Players(Games.getGame(gameid).get.players))
@@ -171,17 +183,6 @@ class GameServlet extends ScalatraServlet with ScalateSupport with JacksonJsonSu
     }
   }
 
-  def updateServers(): Unit = {
-    var games = write(Games())
-    for (game <- Games().games) {
-      if (!game.started) {
-        for (player <- game.players) {
-          var post = "POST /id/updategames HTTP/1.1\r\n" + "Content-Type: application/json; charset=UTF-8\r\n\r\n" + games
-          ServerKomponenteFacade.senden(player.id, post)
-        }
-      }
-    }
-  }
 
   //get player of current turn
   get("/:gameid/players/current") {

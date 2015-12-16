@@ -125,11 +125,12 @@ object Games {
                   case Some(game) =>
                     game.players = player :: game.players.tail // filterNot( x => x.id == player.id)
                     playerTry.ready = true
+                    Logger.info("setPlayerReady " + playerid + " is ready now")
                     setMutex(gameid, player.id)
                   case None => None
                 }
               }
-            case None =>
+            case None => None
           }
         } else {
           //Game not started lobby
@@ -147,7 +148,7 @@ object Games {
     //    players.foreach(p => println(p.ready))
     if (players.forall(_.ready == true)) {
       Logger.info("setPlayerReady game started")
-      //@TODO hier fehlt was, direktes starten des spiels nicht erlaubt, da ready true erwartet wird
+      //@TODO Schon fertig?  - hier fehlt was, direktes starten des spiels nicht erlaubt, da ready true erwartet wird
       players.head.ready = false
       setMutex(gameid, players.head.id)
       getGame(gameid).get.started = true
@@ -193,6 +194,7 @@ object Games {
   //@TODO Zu aquiere umbennen?
   def setMutex(gameid: String, playerid: String): String = {
     //@TODO Hier einen echten mutex einbauen, da jetty async?
+    Logger.info(playerid + " Try to set Mutex")
     getGame(gameid) match {
       case Some(game) =>
         if (playerid == game.mutex) {
