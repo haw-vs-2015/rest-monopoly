@@ -91,7 +91,7 @@ object Games {
       case Some(game) =>
         if (!game.started) {
           Logger.info("player " + player.id + " joined Game " + gameid)
-          game.players +:= player
+          game.players :+= player
           Some(player)
         } else {
           Logger.info("Error " + gameid + " cant join game, already started")
@@ -126,6 +126,7 @@ object Games {
                     game.players = player :: game.players.tail // filterNot( x => x.id == player.id)
                     playerTry.ready = true
                     Logger.info("setPlayerReady " + playerid + " is ready now")
+                    resetMutex(gameid)
                     setMutex(gameid, player.id)
                   case None => None
                 }

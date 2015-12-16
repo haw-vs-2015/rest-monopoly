@@ -17,7 +17,7 @@ class BoardServlet extends ScalatraServlet with ScalateSupport with JacksonJsonS
 
   protected override def transformRequestBody(body: JValue): JValue = body.camelizeKeys
 
-  val TIMEOUT = 2000
+  val TIMEOUT = 5000
 
   before() {
     contentType = formats("json")

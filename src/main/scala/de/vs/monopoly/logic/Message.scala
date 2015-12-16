@@ -8,10 +8,6 @@ import play.api.Logger
 
 object Messages {
 
-  def getSubscriber(): Any = ???
-
-  def getChannel(): Any = ???
-
   //@TODO Messages are send once right now. No checking if they are succefully send.
   //@TODO Second chance to receive data timeout...
   //@TODO Send data to all async if something in messages?
@@ -19,27 +15,34 @@ object Messages {
   //@TODO remove all subscibtion of a subscriber
   //@TODO List of all channels
   //@TODO List of all subscribt channels of a subscriber
+  //@TODO? removeAChannel and all his subscribers?
 
   var subscribers = Map[String, Subscriber]()
-  //id, object
-  var channels = Map[String, List[String]]()
   //channelname, ids ob subscribers
-  //  var channels = Map[String, List[Subscriber]]()
-  var messages = Map[String, List[String]]() //channelname, message
+  var channels = Map[String, List[String]]().withDefaultValue(Nil)
+  //  var messages = Map[String, List[String]]() //channelname, message
 
-  //  def addChannel(name: String) {
-  //    if (!channels.contains(name)) {
-  //      val lst = List[Subscriber]()
-  //      channels += (name -> lst)
-  //      Logger.info("addChannel - " + name)
-  //    }
-  //  }
+  def getChannels(): Channels = {
+    Channels(channels.keys.toList)
+  }
 
-  def addChannel(channelName: String) {
+  def getChannelSubscribers(channelName: String): Subscribers = {
+    Subscribers(channels(channelName))
+  }
+
+  def getSubscriber(subscriberName: String): Option[Subscriber] = {
+    Logger.info("getSubscriber - " + subscriberName)
+    subscribers.get(subscriberName)
+  }
+
+  private def addChannel(channelName: String): List[String] = {
     if (!channels.contains(channelName)) {
       val lst = List[String]()
       channels += (channelName -> lst)
       Logger.info("addChannel - " + channelName)
+      lst
+    } else {
+      channels(channelName)
     }
   }
 
@@ -58,36 +61,37 @@ object Messages {
   }
 
   //@TODO Needs Thread safe
-  def addSubscriberToChannel(channelName: String, subscriber_id: String) {
-    val subscribers = channels.get(channelName).get
-    if (!subscribers.contains(subscriber_id)) {
-      val new_subscribers = subscribers:+(subscriber_id)
-      channels += (channelName -> new_subscribers)
+  private def addSubscriberToChannel(channelName: String, subscriber_id: String) {
+    var _subscribers = addChannel(channelName)
+    if (!_subscribers.contains(subscriber_id)) {
+      Logger.info("--laddSubscriber - " + _subscribers)
+      _subscribers +:= subscriber_id
+      channels += (channelName -> _subscribers)
     }
   }
 
   //@TODO Doppelter Name in einem Channel, darf nicht möglich sein
-  //@TODO Channel Typ einbauen, damit kein doppelten subsciben eines bestimmten typs möglch ist
+  //@TODO Channel Typ einbauen, damit kein doppelten subsciben eines bestimmten typs möglich ist
   //Dadurch muss das unsubscribe nicht ausgeführt werden.
   def addSubscriber(channelName: String, subscriber: Subscriber) {
-    addChannel(channelName)
 
     //Add first channel to subscriber list
     subscriber.subscribt_channels +:= channelName
 
     //@DONE needs testing - entfernen der doppelten channels aus der subscriber channel list
     subscriber.subscribt_channels = subscriber.subscribt_channels.distinct
-
+    println(subscriber.subscribt_channels)
     subscribers += (subscriber.id -> subscriber)
 
     //@DONE join all channels from subscriber
     for (wantChannel <- subscriber.subscribt_channels) {
       addSubscriberToChannel(wantChannel, subscriber.id)
     }
-    Logger.info("addSubscriber - " + subscriber)
+    Logger.info("addSubscriber - " + subscribers)
+    Logger.info("addSubscriber - " + getChannelSubscribers(channelName))
   }
 
-  def removeSubscriber(channelName: String, subscriber: String) {
+  def removeSubscriberFromChannel(channelName: String, subscriber: String) {
     channels.get(channelName) match {
       case Some(subsribers) =>
         channels += (channelName -> subsribers.filterNot { sub => sub == subscriber })
@@ -98,57 +102,29 @@ object Messages {
     }
   }
 
-  def removeSubscriber(subscriberName: String) {
+  def removeSubscriberFromAllChannels(subscriberName: String) {
     getSubscriber(subscriberName) match {
       case Some(subscriber) =>
         for (isInChannel <- subscriber.subscribt_channels) {
-          removeSubscriber(isInChannel, subscriberName)
+          removeSubscriberFromChannel(isInChannel, subscriberName)
         }
-        Logger.info("removeSubscriber - " + subscriberName + " wurde entfernt.")
       case None =>
         Logger.info("removeSubscriber - " + subscriberName + " gibt es nicht.")
     }
   }
 
-  def getSubscribersID(channelName: String): Option[List[String]] = {
-    Logger.info("getSubscribersID - " + channels.get(channelName))
-    channels.get(channelName)
-  }
-
-  def getSubscribers(channelName: String): Option[List[Subscriber]] = {
-    channels.get(channelName) match {
-      case Some(subscriberids) =>
-        Logger.info("getSubscribers - channel " + channelName + " gefunden.")
-        Some(subscribers.values.toList)
-      case None =>
-        Logger.info("getSubscribers - channel " + channelName + " gibt es nicht.")
-        None
-    }
-  }
-
-  def getSubscriber(subscriberName: String): Option[Subscriber] = {
-    Logger.info("getSubscriber - " + subscriberName)
-    subscribers.get(subscriberName)
-  }
-
-  def getChannels(): Channels = {
-    var rs = List[Channel]()
-    for (channel <- channels) {
-      rs +:= Channel(channel._1, channel._2)
-    }
-    Logger.info("getChannels - " + Channels(rs))
-    Channels(rs)
-  }
-
   def reset(): Unit = {
     channels = Map()
+    subscribers = Map()
   }
 }
 
+case class Subscribers(subscribers: List[String])
+
 case class Subscriber(id: String, var subscribt_channels: List[String], var uri: String)
 
-case class Channels(channels: List[Channel])
+case class Channels(channels: List[String])
 
-case class Channel(name: String, subscribers: List[String])
+case class Channel(channelName: String, subscribers: List[String])
 
 case class Message(id: String, reason: String, sourceURI: String, payload: String)
