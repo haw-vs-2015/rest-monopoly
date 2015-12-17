@@ -7,10 +7,9 @@ import de.vs.monopoly.logic._
 import org.scalatra._
 import org.scalatra.json.JacksonJsonSupport
 import org.json4s._
-import play.api.Logger
+import org.json4s.native.Serialization.{read, write}
 import scalate.ScalateSupport
 import play.api.libs.ws.WSResponse
-import org.json4s.native.Serialization.{read, write}
 import scala.util.{Failure, Success}
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -102,11 +101,6 @@ class GameServlet extends ScalatraServlet with ScalateSupport with JacksonJsonSu
 
     message = Message("SERVER", "start_game", "EGAL", "")
     HttpAsync.post("http://localhost:4567/messages/send/" + gameid, write(message))
-    //
-    //    for (player <- Games.getGame(gameid).get.players) {
-    //      var post = "POST /gamesstart HTTP/1.1\r\n" + "Content-Type: application/json; charset=UTF-8\r\n\r\n"
-    //      ServerKomponenteFacade.senden(player.id, post)
-    //    }
   }
 
   //@TODO game joinen nur moeglich, wenn nicht bereits gejoint
@@ -151,7 +145,7 @@ class GameServlet extends ScalatraServlet with ScalateSupport with JacksonJsonSu
   //@TODO events fehlen
   //remove player
   delete("/:gameid/players/:playerid") {
-    print(request.getRemoteHost)
+    //print(request.getRemoteHost)
     Games removePlayer(params("gameid"), params("playerid"))
 
     //Remove player from board
@@ -161,7 +155,7 @@ class GameServlet extends ScalatraServlet with ScalateSupport with JacksonJsonSu
 
     //If no players in game anymore remove the board
     Games.getGame(params("gameid")) match {
-      case Some(game) =>
+      case Some(game) => updatePlayers(params("gameid"))
       case None => //Remove game
         response = HttpSync.delete("http://localhost:4567" + "/boards/" + params("gameid"), TIMEOUT)
         updateGames()
@@ -169,8 +163,8 @@ class GameServlet extends ScalatraServlet with ScalateSupport with JacksonJsonSu
   }
 
   def updateGames(): Unit = {
-    var message = Message("SERVER", "update_games", "EGAL", write(Games()))
-    println("games: " + write(Games()))
+    val message = Message("SERVER", "update_games", "EGAL", write(Games()))
+    //println("games: " + write(Games()))
     HttpSync.post("http://localhost:4567/messages/send/update_games", write(message), TIMEOUT)
   }
 
@@ -186,14 +180,9 @@ class GameServlet extends ScalatraServlet with ScalateSupport with JacksonJsonSu
   }
 
   def updatePlayers(gameid: String): Unit = {
-    println("Update players GEHT DOCH")
     val players = Players(Games.getGame(gameid).get.players)
     val message = Message("SERVER", "update_players", "EGAL", write(players))
     HttpAsync.post("http://localhost:4567/messages/send/" + gameid, write(message))
-    //    for (player <- Games.getGame(gameid).get.players) {
-    //      var post = "POST /player/update HTTP/1.1\r\n" + "Content-Type: application/json; charset=UTF-8\r\n\r\n" + players
-    //      ServerKomponenteFacade.senden(player.id, post)
-    //    }
   }
 
   //get player of current turn

@@ -8,8 +8,11 @@ import org.scalatra._
 import org.scalatra.json.JacksonJsonSupport
 import org.scalatra.scalate.ScalateSupport
 import play.api.libs.ws.WSResponse
-
+import de.vs.monopoly.logic._
 import de.alexholly.util.http.HttpSync
+import org.scalatra.json.JacksonJsonSupport
+import org.json4s._
+import org.json4s.native.Serialization.{read, write}
 
 class BoardServlet extends ScalatraServlet with ScalateSupport with JacksonJsonSupport {
 
@@ -92,12 +95,20 @@ class BoardServlet extends ScalatraServlet with ScalateSupport with JacksonJsonS
       val _throw = parse(request.body).extract[Throw]
       Boards.rolled(params("gameid"), params("playerid"), currPlayerid, _throw) match {
         case Some(boardstatus) =>
+          updateBoard(params("gameid"), boardstatus)
           boardstatus
         case None =>
+          //TODO quick and dirty, illegal roll update
+          updateBoard(params("gameid"), BoardStatus(Boards.getPlayer(params("gameid"), currPlayerid).get, Boards.get(params("gameid")).get, Event()))
           NotFound()
       }
     } else {
       response.status
     }
+  }
+
+  def updateBoard(gameid: String, board: BoardStatus) {
+    val message = Message("SERVER", "update_board", "EGAL", write(board))
+    HttpSync.post("http://localhost:4567/messages/send/"+gameid, write(message), TIMEOUT)
   }
 }
