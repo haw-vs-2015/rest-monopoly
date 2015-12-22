@@ -114,7 +114,7 @@ object Games {
   def setPlayerReady(gameid: String, playerid: String) {
 
     getPlayer(gameid, playerid) match {
-      case Some(playerTry) =>
+      case Some(playerReady) =>
         //Game started
         if (getGame(gameid).get.started) {
           getCurrentPlayer(gameid) match {
@@ -123,11 +123,13 @@ object Games {
                 //check ob spieler gerade dran auch der jenige, der ready drueckt
                 getGame(gameid) match {
                   case Some(game) =>
-                    game.players = player :: game.players.tail // filterNot( x => x.id == player.id)
-                    playerTry.ready = true
-                    Logger.info("setPlayerReady " + playerid + " is ready now")
+                    //@TODO head option einbauen
+                    game.players = game.players.tail :+ game.players.head
+                    player.ready = true
+                    game.players(0).ready = false
+                    //Logger.info("setPlayerReady " + player.id + " is ready now")
                     resetMutex(gameid)
-                    setMutex(gameid, player.id)
+                    setMutex(gameid, game.players(0).id)
                   case None => None
                 }
               }
@@ -136,7 +138,7 @@ object Games {
         } else {
           //Game not started lobby
           Logger.info("setPlayerReady " + playerid + " lobby success")
-          playerTry.ready = true
+          playerReady.ready = true
         }
       case None => Logger.info("Error " + playerid + " setPlayerReady")
     }

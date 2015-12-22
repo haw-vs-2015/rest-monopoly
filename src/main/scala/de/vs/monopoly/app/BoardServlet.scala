@@ -99,8 +99,10 @@ class BoardServlet extends ScalatraServlet with ScalateSupport with JacksonJsonS
           boardstatus
         case None =>
           //TODO quick and dirty, illegal roll update
-          updateBoard(params("gameid"), BoardStatus(Boards.getPlayer(params("gameid"), currPlayerid).get, Boards.get(params("gameid")).get, Event()))
-          NotFound()
+          val board = BoardStatus(Boards.getPlayer(params("gameid"), currPlayerid).get, Boards.get(params("gameid")).get, Event())
+          updateBoard(params("gameid"), board)
+          board
+          //NotFound()
       }
     } else {
       response.status
