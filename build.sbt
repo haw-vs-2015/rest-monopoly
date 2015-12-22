@@ -22,7 +22,7 @@ Keys.test in assembly := {}
 
 libraryDependencies ++= Seq(
   "org.scalatest"           %% "scalatest"                      % "2.2.4",
-  "de.alexholly.util"       %% "ip-manager"                     % "0.0.1-SNAPSHOT",
+  "de.alexholly.util"       %% "ip-manager"                     % "0.0.2-SNAPSHOT",
   "de.alexholly.util"       %% "http-client"                    % "0.0.1-SNAPSHOT",
   "de.alexholly.util"       %% "tcp-socket"                     % "0.0.1-SNAPSHOT",
   "org.scalatra"            %% "scalatra"                       % "2.3.0.RC3",

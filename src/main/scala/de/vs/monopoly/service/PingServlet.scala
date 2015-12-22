@@ -25,10 +25,6 @@ case class PingService() extends IOnDisconnect with IOnConnect {
   def onConnect(user: User) = {
     Logger.info("Player connected: " + user.id)
     //    Logger.info("player is dead " + user.name)
-    //    var response = HttpSync.delete("http://localhost:4567/player/" + user.name, TIMEOUT)
-
-//    var body = write(ID(user.id))
-//    user.senden("POST /id HTTP/1.1 \r\n" + "Content-Type: application/json; charset=UTF-8\r\n\r\n" + body)
 
     var message = Message(user.id, "set_playerid", "EGAL", "")
     user.senden("POST /id HTTP/1.1 \r\n" + "Content-Type: application/json; charset=UTF-8\r\n\r\n" + write(message))

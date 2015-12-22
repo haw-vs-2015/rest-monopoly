@@ -86,9 +86,9 @@ class BoardServlet extends ScalatraServlet with ScalateSupport with JacksonJsonS
   post("/:gameid/players/:playerid/roll") {
     var response: WSResponse = null
     if (Global.testMode) {
-      response = HttpSync.get(Global.default_url + "/games/" + params("gameid") + "/players/turn", TIMEOUT)
+      response = HttpSync.get(Global.games_uri + "/games/" + params("gameid") + "/players/turn", TIMEOUT)
     } else {
-      response = HttpSync.get("http://localhost:4567" + "/games/" + params("gameid") + "/players/turn", TIMEOUT)
+      response = HttpSync.get(Global.games_uri + "/games/" + params("gameid") + "/players/turn", TIMEOUT)
     }
     if (response.status == 200) {
       var currPlayerid = response.body
@@ -111,6 +111,6 @@ class BoardServlet extends ScalatraServlet with ScalateSupport with JacksonJsonS
 
   def updateBoard(gameid: String, board: BoardStatus) {
     val message = Message("SERVER", "update_board", "EGAL", write(board))
-    HttpSync.post("http://localhost:4567/messages/send/"+gameid, write(message), TIMEOUT)
+    HttpSync.post(Global.messages_uri + "/messages/send/"+gameid, write(message), TIMEOUT)
   }
 }

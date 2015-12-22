@@ -35,9 +35,9 @@ class BoardTest extends FunSuite with BeforeAndAfter {
   var server = JettyServer().startOnFreePort()
   //@TODO remove global stuff and if's from logic
   //@TODO Add service Manager and ask the ip/port
-  Global.default_url = "http://localhost:" + server.port
-  Global.testMode = true
-  var default_url = Global.default_url
+//  Global.default_url = "http://localhost:" + server.port
+//  Global.testMode = true
+//  var default_url = Global.default_url
 
   after {
     Boards.reset()
@@ -45,7 +45,7 @@ class BoardTest extends FunSuite with BeforeAndAfter {
   }
 
   test("wuerfeln") {
-    var response = get(default_url + "/dice", TIMEOUT)
+    var response = get(Global.test_url + "/dice", TIMEOUT)
     assert(response.status == 200)
 
     var obj = parse(response.body).extract[Roll]
@@ -53,7 +53,7 @@ class BoardTest extends FunSuite with BeforeAndAfter {
   }
 
   test("get all boards") {
-    var response = get(default_url + "/boards", TIMEOUT)
+    var response = get(Global.test_url + "/boards", TIMEOUT)
     assert(response.status == 200)
 
     var obj = parse(response.body).extract[Boards]
@@ -62,21 +62,21 @@ class BoardTest extends FunSuite with BeforeAndAfter {
 
   test("find board - fail") {
     //find board
-    var response = get(default_url + "/boards/1", TIMEOUT)
+    var response = get(Global.test_url + "/boards/1", TIMEOUT)
     assert(response.status == 404)
   }
 
   test("find board - success") {
 
     //create board 1
-    var response = put(default_url + "/boards/1", TIMEOUT)
+    var response = put(Global.test_url + "/boards/1", TIMEOUT)
     assert(response.status == 201)
 
     //find board 1
-    response = get(default_url + "/boards/1", TIMEOUT)
+    response = get(Global.test_url + "/boards/1", TIMEOUT)
     assert(response.status == 200)
 
-    response = get(default_url + "/boards", TIMEOUT)
+    response = get(Global.test_url + "/boards", TIMEOUT)
     assert(response.status == 200)
 
     //check if board 1 is still available
@@ -87,52 +87,52 @@ class BoardTest extends FunSuite with BeforeAndAfter {
   test("board, gameid duplicate - fail conflict") {
 
     //create board
-    var response = put(default_url + "/boards/1", TIMEOUT)
+    var response = put(Global.test_url + "/boards/1", TIMEOUT)
     assert(response.status == 201)
 
     //create same board again
-    response = put(default_url + "/boards/1", TIMEOUT)
+    response = put(Global.test_url + "/boards/1", TIMEOUT)
     assert(response.status == 409)
   }
 
   test("delete gameid(board) - success") {
 
     //create board 1
-    var response = put(default_url + "/boards/1", TIMEOUT)
+    var response = put(Global.test_url + "/boards/1", TIMEOUT)
     assert(response.status == 201)
 
     //delete board 1
-    response = delete(default_url + "/boards/1", TIMEOUT)
+    response = delete(Global.test_url + "/boards/1", TIMEOUT)
     assert(response.status == 200)
 
     //check if board 1 is deleted
-    response = get(default_url + "/boards/1", TIMEOUT)
+    response = get(Global.test_url + "/boards/1", TIMEOUT)
     assert(response.status == 404)
   }
 
   test("delete gameid(board) - fail") {
 
     //create board 1
-    var response = put(default_url + "/boards/1", TIMEOUT)
+    var response = put(Global.test_url + "/boards/1", TIMEOUT)
     assert(response.status == 201)
 
     //try to delete non available board 2
-    response = delete(default_url + "/boards/2", TIMEOUT)
+    response = delete(Global.test_url + "/boards/2", TIMEOUT)
     assert(response.status == 404)
 
     //check if board 1 is still there
-    response = get(default_url + "/boards/1", TIMEOUT)
+    response = get(Global.test_url + "/boards/1", TIMEOUT)
     assert(response.status == 200)
   }
 
   test("get all players on board empty - success") {
 
     //create board 1
-    var response = put(default_url + "/boards/1", TIMEOUT)
+    var response = put(Global.test_url + "/boards/1", TIMEOUT)
     assert(response.status == 201)
 
     //get all players on board
-    response = get(default_url + "/boards/1/players", TIMEOUT)
+    response = get(Global.test_url + "/boards/1/players", TIMEOUT)
     assert(response.status == 200)
 
     //check if list it empty
@@ -143,19 +143,19 @@ class BoardTest extends FunSuite with BeforeAndAfter {
   test("put/get/delete player on board - success") {
 
     //create board 1
-    var response = put(default_url + "/boards/1", TIMEOUT)
+    var response = put(Global.test_url + "/boards/1", TIMEOUT)
     assert(response.status == 201)
 
     //put player on board
-    response = put(default_url + "/boards/1/players/1", TIMEOUT)
+    response = put(Global.test_url + "/boards/1/players/1", TIMEOUT)
     assert(response.status == 201)
 
     //check if player is on board
-    response = get(default_url + "/boards/1/players/1", TIMEOUT)
+    response = get(Global.test_url + "/boards/1/players/1", TIMEOUT)
     assert(response.status == 200)
 
     //get all players on board
-    response = get(default_url + "/boards/1/players", TIMEOUT)
+    response = get(Global.test_url + "/boards/1/players", TIMEOUT)
     assert(response.status == 200)
 
     //check if list contains one player
@@ -163,11 +163,11 @@ class BoardTest extends FunSuite with BeforeAndAfter {
     assert(obj.size == 1)
 
     //remove players from board
-    response = delete(default_url + "/boards/1/players/1", TIMEOUT)
+    response = delete(Global.test_url + "/boards/1/players/1", TIMEOUT)
     assert(response.status == 200)
 
     //get all players on board
-    response = get(default_url + "/boards/1/players", TIMEOUT)
+    response = get(Global.test_url + "/boards/1/players", TIMEOUT)
     assert(response.status == 200)
 
     //check if list is emtpy
@@ -190,7 +190,7 @@ class BoardTest extends FunSuite with BeforeAndAfter {
     var uri4_encoded = URLEncoder.encode(uri4, "UTF-8")
 
     //Create a game
-    post(default_url + "/games", TIMEOUT)
+    post(Global.test_url + "/games", TIMEOUT)
 
     //Create a player
     createPlayer(name1, uri1_encoded)
@@ -199,23 +199,23 @@ class BoardTest extends FunSuite with BeforeAndAfter {
     createPlayer(name4, uri4_encoded)
 
     //make player1 ready
-    var response = put(default_url + "/games/1/players/" + 1 + "/ready", TIMEOUT)
+    var response = put(Global.test_url + "/games/1/players/" + 1 + "/ready", TIMEOUT)
     assert(response.status == 200)
 
     //make player2 ready
-    response = put(default_url + "/games/1/players/" + 2 + "/ready", TIMEOUT)
+    response = put(Global.test_url + "/games/1/players/" + 2 + "/ready", TIMEOUT)
     assert(response.status == 200)
 
     //make player3 ready
-    response = put(default_url + "/games/1/players/" + 3 + "/ready", TIMEOUT)
+    response = put(Global.test_url + "/games/1/players/" + 3 + "/ready", TIMEOUT)
     assert(response.status == 200)
 
     //make player4 ready
-    response = put(default_url + "/games/1/players/" + 4 + "/ready", TIMEOUT)
+    response = put(Global.test_url + "/games/1/players/" + 4 + "/ready", TIMEOUT)
     assert(response.status == 200)
 
     //start game
-    response = put(default_url + "/games/1/start", TIMEOUT)
+    response = put(Global.test_url + "/games/1/start", TIMEOUT)
     assert(response.status == 200)
 
     //@TODO Player fehlt, roll erwartet Post objekt als json und nicht nur Throw
@@ -224,7 +224,7 @@ class BoardTest extends FunSuite with BeforeAndAfter {
       "\"roll2\": {\"number\":42 } " +
       " }"
 
-    response = post(default_url + "/boards/1/players/" + 4 + "/roll", _throw, TIMEOUT)
+    response = post(Global.test_url + "/boards/1/players/" + 4 + "/roll", _throw, TIMEOUT)
     assert(response.status == 200)
 
     //@TODO Test ob der Spieler korrekt auf dem board bewegt wurde
@@ -232,7 +232,7 @@ class BoardTest extends FunSuite with BeforeAndAfter {
 
   //@TODO Ich glaub es fehlen noch paar tests
   def createPlayer(name: String, uri_encoded: String) = {
-    var response = put(Global.default_url + "/games/1/players/" + name + "?name=" + name + "&uri=" + uri_encoded, TIMEOUT)
+    var response = put(Global.test_url + "/games/1/players/" + name + "?name=" + name + "&uri=" + uri_encoded, TIMEOUT)
     assert(response.status == 200)
   }
 }

@@ -4,6 +4,7 @@ import de.alexholly.util.IPManager
 import de.alexholly.util.tcpsocket.ServerKomponenteFacade
 
 import de.vs.monopoly.app._
+import de.vs.monopoly.logic.Global
 import de.vs.monopoly.logic.Service
 import de.vs.monopoly.service.{PingService, TestService}
 import org.json4s._
@@ -24,30 +25,32 @@ class ScalatraBootstrap extends LifeCycle {
     context mount(new PlayerServlet(), "/player/*")
     context mount(new BoardServlet(), "/boards/*")
     context mount(new GameServlet(), "/games/*")
-    context mount (new MessagesServlet(), "/messages/*")
+    context mount(new MessagesServlet(), "/messages/*")
 
     ServerKomponenteFacade.starten(3560)
     ServerKomponenteFacade.setMaxClients(2)
+    //    val response = HttpSync.get("https://api.ipify.org?format=json", 2000)
 
-//    ServerKomponenteFacade.addService("name", TestService())
+    Global.init(true)
+    //    ServerKomponenteFacade.addService("name", TestService())
     PingService()
 
     //context mount(new PingServlet, "/connect/*")
-//    val boardService = Service("abh928boards", "Manage Board", "boards", "http://" + IPManager.getLocalIP() + ":4567/boards")
-//    val gameService = Service("abh928games", "Manage game", "games", "http://" + IPManager.getLocalIP() + ":4567/games")
-//
-//    var response = HttpSync.post("https://vs-docker.informatik.haw-hamburg.de/ports/8053/services",
-//      write(boardService),
-//      10 seconds,
-//      ("content-type" -> "application/json"))
-//
-//    Logger.info("Erstelle BoardsService " + response.status)
-//
-//    response = HttpSync.post("https://vs-docker.informatik.haw-hamburg.de/ports/8053/services",
-//      write(gameService),
-//      10 seconds,
-//      ("content-type" -> "application/json"))
-//    Logger.info("Erstelle GamesService  " + response.status)
+    //    val boardService = Service("abh928boards", "Manage Board", "boards", "http://" + IPManager.getLocalIP() + ":4567/boards")
+    //    val gameService = Service("abh928games", "Manage game", "games", "http://" + IPManager.getLocalIP() + ":4567/games")
+    //
+    //    var response = HttpSync.post("https://vs-docker.informatik.haw-hamburg.de/ports/8053/services",
+    //      write(boardService),
+    //      10 seconds,
+    //      ("content-type" -> "application/json"))
+    //
+    //    Logger.info("Erstelle BoardsService " + response.status)
+    //
+    //    response = HttpSync.post("https://vs-docker.informatik.haw-hamburg.de/ports/8053/services",
+    //      write(gameService),
+    //      10 seconds,
+    //      ("content-type" -> "application/json"))
+    //    Logger.info("Erstelle GamesService  " + response.status)
 
   }
 }

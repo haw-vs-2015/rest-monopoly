@@ -33,9 +33,9 @@ class DiceTest extends FunSuite with BeforeAndAfter {
   //@TODO remove global stuff and if's from logic
   //@TODO Add service Manager and ask the ip/port
   var server = JettyServer().startOnFreePort()
-  Global.default_url = "http://localhost:" + server.port
-  Global.testMode = true
-  var default_url = Global.default_url
+//  Global.default_url = "http://localhost:" + server.port
+//  Global.testMode = true
+//  var default_url = Global.default_url
 
   after {
     Boards.reset()
@@ -43,7 +43,7 @@ class DiceTest extends FunSuite with BeforeAndAfter {
   }
 
   test("wuerfeln") {
-    var response = get(default_url + "/dice", TIMEOUT)
+    var response = get(Global.test_url + "/dice", TIMEOUT)
     assert(response.status == 200)
 
     val obj = parse(response.body).extract[Roll]

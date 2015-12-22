@@ -39,14 +39,14 @@ class GameServlet extends ScalatraServlet with ScalateSupport with JacksonJsonSu
     var game = Games createNewGame()
     //@TODO Ask yellowpages for boards service url
     var response: WSResponse = null
-    if (Global.testMode) {
-      response = HttpSync.put(Global.default_url + "/boards/" + game.gameid, TIMEOUT)
-    } else {
-      response = HttpSync.put("http://localhost:4567" + "/boards/" + game.gameid, TIMEOUT)
-    }
+    //    if (Global.testMode) {
+    //      response = HttpSync.put(Global.default_url + "/boards/" + game.gameid, TIMEOUT)
+    //    } else {
+    response = HttpSync.put(Global.boards_uri + "/boards/" + game.gameid, TIMEOUT)
+    //    }
     if (response.status == 201) {
-      //@TODO yellowpages zeugt funkioniert noch nicht
-      game.components.board = "http://localhost:4567/boards"
+      //@TODO yellowpages funkioniert noch nicht
+      game.components.board = Global.boards_uri + "/boards"
       updateGames()
       Created(game)
     } else {
@@ -94,9 +94,9 @@ class GameServlet extends ScalatraServlet with ScalateSupport with JacksonJsonSu
     }
   }
 
-  def startGame(gameid: String, playerid:String) {
+  def startGame(gameid: String, playerid: String) {
     var message = Message("SERVER", "player_turn", "EGAL", "")
-    val post = "POST /messages/send/"+gameid+" HTTP/1.1\r\n" + "Content-Type: application/json; charset=UTF-8\r\n\r\n" + write(message)
+    val post = "POST /messages/send/" + gameid + " HTTP/1.1\r\n" + "Content-Type: application/json; charset=UTF-8\r\n\r\n" + write(message)
     ServerKomponenteFacade.senden(playerid, post)
 
     message = Message("SERVER", "start_game", "EGAL", "")
@@ -120,15 +120,15 @@ class GameServlet extends ScalatraServlet with ScalateSupport with JacksonJsonSu
       case Some(player) =>
         //put player on board
         var response: WSResponse = null
-        if (Global.testMode) {
-          response = HttpSync.put(Global.default_url + "/boards/" + params("gameid") + "/players/" + request.getRemoteAddr, TIMEOUT)
-        } else {
-          response = HttpSync.put("http://localhost:4567" + "/boards/" + params("gameid") + "/players/" + request.getRemoteAddr, TIMEOUT)
-        }
+        //        if (Global.testMode) {
+        //          response = HttpSync.put(Global.default_url + "/boards/" + params("gameid") + "/players/" + request.getRemoteAddr, TIMEOUT)
+        //        } else {
+        response = HttpSync.put(Global.boards_uri + "/boards/" + params("gameid") + "/players/" + request.getRemoteAddr, TIMEOUT)
+        //        }
         if (response.status == 201) {
           //Dem spieler den game channel subscriben
           val subscriber = Subscriber(player.id, Nil, "")
-          response = HttpSync.post("http://localhost:4567" + "/messages/subscribe/" + params("gameid"), write(subscriber), TIMEOUT)
+          response = HttpSync.post(Global.messages_uri + "/messages/subscribe/" + params("gameid"), write(subscriber), TIMEOUT)
           //sagen das ein neuer spieler gejoint ist(Service event)
           updatePlayers(params("gameid"))
           Ok(player)
@@ -150,14 +150,14 @@ class GameServlet extends ScalatraServlet with ScalateSupport with JacksonJsonSu
 
     //Remove player from board
     var response: WSResponse = null
-    response = HttpSync.delete("http://localhost:4567" + "/boards/" + params("gameid") + "/players/" + params("playerid"), TIMEOUT)
-    HttpAsync.delete("http://localhost:4567" + "/messages/"+params("gameid")+"/subscriber/" + params("playerid"))
+    response = HttpSync.delete(Global.boards_uri + "/boards/" + params("gameid") + "/players/" + params("playerid"), TIMEOUT)
+    HttpAsync.delete(Global.messages_uri + "/messages/" + params("gameid") + "/subscriber/" + params("playerid"))
 
     //If no players in game anymore remove the board
     Games.getGame(params("gameid")) match {
       case Some(game) => updatePlayers(params("gameid"))
       case None => //Remove game
-        response = HttpSync.delete("http://localhost:4567" + "/boards/" + params("gameid"), TIMEOUT)
+        response = HttpSync.delete(Global.boards_uri + "/boards/" + params("gameid"), TIMEOUT)
         updateGames()
     }
   }
@@ -165,7 +165,7 @@ class GameServlet extends ScalatraServlet with ScalateSupport with JacksonJsonSu
   def updateGames(): Unit = {
     val message = Message("SERVER", "update_games", "EGAL", write(Games()))
     //println("games: " + write(Games()))
-    HttpSync.post("http://localhost:4567/messages/send/update_games", write(message), TIMEOUT)
+    HttpSync.post(Global.messages_uri + "/messages/send/update_games", write(message), TIMEOUT)
   }
 
   //is player ready
@@ -182,7 +182,7 @@ class GameServlet extends ScalatraServlet with ScalateSupport with JacksonJsonSu
   def updatePlayers(gameid: String): Unit = {
     val players = Players(Games.getGame(gameid).get.players)
     val message = Message("SERVER", "update_players", "EGAL", write(players))
-    HttpAsync.post("http://localhost:4567/messages/send/" + gameid, write(message))
+    HttpAsync.post(Global.messages_uri + "/messages/send/" + gameid, write(message))
   }
 
   //get player of current turn
