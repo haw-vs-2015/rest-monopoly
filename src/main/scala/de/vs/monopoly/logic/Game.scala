@@ -8,7 +8,7 @@ object Games {
   //variables
   var _id = 0
   var games: Map[String, Game] = Map()
-  var gamesURI: Map[String, String] = Map() //id,uri
+  var gamesURI: Map[String, GameURI] = Map()
 
   //methods
   def id(): String = {
@@ -31,7 +31,7 @@ object Games {
     val game = Game(components = _components)
 
     games += (game.gameid -> game)
-    gamesURI += (game.gameid -> ("http://" + Global.games_uri + "/games/" + game.gameid))
+    gamesURI += (game.gameid -> GameURI(game.gameid, "http://" + Global.games_uri + "/games/" + game.gameid))
 
     Logger.info("created game " + game.gameid)
     game
@@ -239,7 +239,7 @@ object Games {
     games.values.toList
   }
 
-  def getGamesAsURI(): List[String] = {
+  def getGamesAsURI(): List[GameURI] = {
     gamesURI.values.toList
   }
 
@@ -251,7 +251,9 @@ case class Components(var game: String, var dice: String, var board: String, var
 
 case class Games(games: List[Game])
 
-case class GamesURI(games: List[String])
+case class GamesURI(games: List[GameURI])
+
+case class GameURI(name:String, uri:String)
 
 //@TODO
 //get /boards wieso enthält ein Game kein ready und players?
