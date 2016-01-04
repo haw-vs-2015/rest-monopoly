@@ -31,7 +31,6 @@ class ScalatraBootstrap extends LifeCycle {
     ServerKomponenteFacade.setMaxClients(2)
     //    val response = HttpSync.get("https://api.ipify.org?format=json", 2000)
 
-    Global.init(true)
     //    ServerKomponenteFacade.addService("name", TestService())
     PingService()
 

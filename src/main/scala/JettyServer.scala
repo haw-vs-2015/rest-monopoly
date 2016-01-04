@@ -3,6 +3,7 @@ package de.alexholly.util
 import org.eclipse.jetty.server._
 import org.eclipse.jetty.webapp.WebAppContext
 import org.scalatra.servlet.ScalatraListener
+import play.api.Logger
 
 /**
  * Created by alex on 11.11.15.
@@ -66,7 +67,7 @@ case class JettyServer() {
     serverStarted = true
     port = (conf.port)
 
-    println("started jetty on port " + port)
+    Logger.info("started jetty on port " + port)
     this
   }
 }

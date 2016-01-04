@@ -31,7 +31,7 @@ object Games {
     val game = Game(components = _components)
 
     games += (game.gameid -> game)
-    gamesURI += (game.gameid -> GameURI(game.gameid, "http://" + Global.games_uri + "/games/" + game.gameid))
+    gamesURI += (game.gameid -> GameURI(game.gameid, game.started, Global.games_uri + "/games/" + game.gameid))
 
     Logger.info("created game " + game.gameid)
     game
@@ -51,6 +51,10 @@ object Games {
 
   def getGame(gameid: String): Option[Game] = {
     games.get(gameid)
+  }
+
+  def getGameURI(gameid: String): Option[GameURI] = {
+    gamesURI.get(gameid)
   }
 
   def getPlayer(gameid: String, playerid: String): Option[Player] = {
@@ -160,6 +164,7 @@ object Games {
       players.head.ready = false
       setMutex(gameid, players.head.id)
       getGame(gameid).get.started = true
+      getGameURI(gameid).get.started = true
       Logger.info("game " + gameid + " erfolgreich gestartet")
       Some(players.head)
     } else {
@@ -231,6 +236,7 @@ object Games {
 
   def reset(): Unit = {
     games = Map()
+    gamesURI = Map()
     _id = 0
     Players._id = 0
   }
@@ -253,7 +259,7 @@ case class Games(games: List[Game])
 
 case class GamesURI(games: List[GameURI])
 
-case class GameURI(name:String, uri:String)
+case class GameURI(name: String, var started: Boolean, uri: String)
 
 //@TODO
 //get /boards wieso enthält ein Game kein ready und players?
