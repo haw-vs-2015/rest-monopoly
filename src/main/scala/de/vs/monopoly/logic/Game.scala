@@ -155,7 +155,7 @@ object Games {
 
   def startGame(gameid: String): Option[Player] = {
     //check if all players ready => start game
-    val players = getPlayers(gameid)
+    val players = getPlayers(gameid).getOrElse(Nil)
     Logger.info("try start " + gameid + " game")
     //    players.foreach(p => println(p.ready))
     if (players.forall(_.ready == true)) {
@@ -173,10 +173,23 @@ object Games {
     }
   }
 
-  def getPlayers(gameid: String): List[Player] = {
+  def getPlayers(gameid: String): Option[List[Player]] = {
     games.get(gameid) match {
-      case Some(game) => game.players
-      case None => Nil
+      case Some(game) => Some(game.players)
+      case None => None
+    }
+  }
+
+  def getPlayersURI(gameid: String): Option[List[PlayerURI]] = {
+    games.get(gameid) match {
+      case Some(game) =>
+        var rs = List[PlayerURI]()
+        for (player <- game.players) {
+          val uri = Global.games_uri + "/games/" + game.gameid + "/player/" + player.id
+          rs :+= PlayerURI(player.id, player.name, player.gameid, uri)
+        }
+        Some(rs)
+      case None => None
     }
   }
 

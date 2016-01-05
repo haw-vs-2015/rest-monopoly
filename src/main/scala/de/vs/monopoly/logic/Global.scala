@@ -16,11 +16,11 @@ object Global {
   var messages_uri = "http://localhost:4567"
 
   //@TODO setup jetty correctly
-  def init(public: Boolean) {
-    if (public) {
-      games_uri = "http://" + IPManager.getInternetIP() + ":4567"
-      boards_uri = "http://" + IPManager.getInternetIP() + ":4567"
-      messages_uri = "http://" + IPManager.getInternetIP() + ":4567"
-    }
-  }
+//  def init(public: Boolean) {
+//    if (public) {
+//      games_uri = "http://" + IPManager.getInternetIP() + ":4567"
+//      boards_uri = "http://" + IPManager.getInternetIP() + ":4567"
+//      messages_uri = "http://" + IPManager.getInternetIP() + ":4567"
+//    }
+//  }
 }

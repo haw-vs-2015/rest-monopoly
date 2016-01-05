@@ -8,6 +8,7 @@ import org.scalatra._
 import org.scalatra.json.JacksonJsonSupport
 import org.json4s._
 import org.json4s.native.Serialization.{read, write}
+import play.api.Logger
 import scalate.ScalateSupport
 import play.api.libs.ws.WSResponse
 import scala.util.{Failure, Success}
@@ -42,14 +43,19 @@ class GameServlet extends ScalatraServlet with ScalateSupport with JacksonJsonSu
     //    if (Global.testMode) {
     //      response = HttpSync.put(Global.default_url + "/boards/" + game.gameid, TIMEOUT)
     //    } else {
+    Logger.info("1: " + Global.boards_uri)
     response = HttpSync.put(Global.boards_uri + "/boards/" + game.gameid, TIMEOUT)
     //    }
     if (response.status == 201) {
+
+      Logger.info("2: ")
       //@TODO yellowpages funkioniert noch nicht
       game.components.board = Global.boards_uri + "/boards"
       updateGames()
       Created(game)
     } else {
+
+      Logger.info("3: ")
       Games.removeGame(game.gameid)
       NotFound()
     }
@@ -65,8 +71,8 @@ class GameServlet extends ScalatraServlet with ScalateSupport with JacksonJsonSu
 
   //get all players
   get("/:gameid/players") {
-    Games getGame (params("gameid")) match {
-      case Some(game) => game.players
+    Games.getPlayersURI(params("gameid")) match {
+      case Some(playersUri) => playersUri
       case None => NotFound()
     }
   }
@@ -114,6 +120,7 @@ class GameServlet extends ScalatraServlet with ScalateSupport with JacksonJsonSu
     var uri = "http://" + request.getRemoteAddr + ":3560"
 
     //entfernen des spielers aus dem letzten game das er gejoint hat
+    //@TODO sieht dirty aus
     HttpSync.delete("http://localhost:4567" + "/games/" + params("gameid") + "/players/" + request.getRemoteAddr, TIMEOUT)
 
     Games joinGame(params("gameid"), request.getRemoteAddr, params("name"), uri) match {
