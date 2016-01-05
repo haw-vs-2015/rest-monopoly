@@ -2,6 +2,10 @@
 
 rest - http://scalatra.org/
 
+## BUGS ##
+
+keine ? im chat nutzen, da diese eine exception werfen. Der Client macht aus dem ? ein \? bei to_json(), damit hat der Server probleme...
+
 ## Dependencies ##
 
 https://github.com/AlexHolly/util-scala-ws-http-client
