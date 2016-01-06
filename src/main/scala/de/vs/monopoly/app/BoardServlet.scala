@@ -91,7 +91,7 @@ class BoardServlet extends ScalatraServlet with ScalateSupport with JacksonJsonS
       response = HttpSync.get(Global.games_uri + "/games/" + params("gameid") + "/players/turn", TIMEOUT)
     }
     if (response.status == 200) {
-      var currPlayerid = response.body
+      val currPlayerid = response.body
       val _throw = parse(request.body).extract[Throw]
       Boards.rolled(params("gameid"), params("playerid"), currPlayerid, _throw) match {
         case Some(boardstatus) =>

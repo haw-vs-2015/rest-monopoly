@@ -16,22 +16,25 @@ object Games {
     _id.toString
   }
 
-  def createNewGame(): Game = {
+  def createNewGame(host: String, port: String): Game = {
+
+    val game = Game()
+    game.uri = "http://" + host + ":" + port + "/games/" + game.gameid
 
     //Init Components //Generate Components fehlt
-    val _game = ""
-    val dice = ""
-    val board = ""
+    val _game = game.uri
+    val dice = "http://" + host + ":" + port + "/dice"
+    val board = "http://" + host + ":" + port + "/boards/" + game.gameid
     val bank = ""
     val broker = ""
     val decks = ""
     val events = ""
     val _components = Components(_game, dice, board, bank, broker, decks, events)
 
-    val game = Game(components = _components)
+    game.components = _components
 
     games += (game.gameid -> game)
-    gamesURI += (game.gameid -> GameURI(game.gameid, game.started, Global.games_uri + "/games/" + game.gameid))
+    gamesURI += (game.gameid -> GameURI(game.gameid, game.started, game.uri))
 
     Logger.info("created game " + game.gameid)
     game
@@ -276,4 +279,4 @@ case class GameURI(name: String, var started: Boolean, uri: String)
 
 //@TODO
 //get /boards wieso enthält ein Game kein ready und players?
-case class Game(gameid: String = Games.id().toString, var players: List[Player] = List(), components: Components, var started: Boolean = false, var mutex: String = "")
+case class Game(gameid: String = Games.id().toString, var players: List[Player] = List(), var components: Components = Components("", "", "", "", "", "", ""), var started: Boolean = false, var mutex: String = "", var uri: String = "")

@@ -37,22 +37,18 @@ class GameServlet extends ScalatraServlet with ScalateSupport with JacksonJsonSu
   //Creates a new Game
   post("/") {
     //@TODO game nur erzeugen wenn auch board erzeugt wurde
-    var game = Games createNewGame()
+    val game = Games createNewGame(request.getLocalAddr(), request.getLocalPort().toString)
     //@TODO Ask yellowpages for boards service url
     var response: WSResponse = null
-    //    if (Global.testMode) {
-    //      response = HttpSync.put(Global.default_url + "/boards/" + game.gameid, TIMEOUT)
-    //    } else {
+
     Logger.info("1: " + Global.boards_uri)
     response = HttpSync.put(Global.boards_uri + "/boards/" + game.gameid, TIMEOUT)
-    //    }
-    if (response.status == 201) {
 
+    if (response.status == 201) {
       Logger.info("2: ")
       //@TODO yellowpages funkioniert noch nicht
-      game.components.board = Global.boards_uri + "/boards"
       updateGames()
-      Created(game)
+      Ok("response", Map("Location" -> game.uri))
     } else {
 
       Logger.info("3: ")

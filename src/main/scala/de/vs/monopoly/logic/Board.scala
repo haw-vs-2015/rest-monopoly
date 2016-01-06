@@ -5,6 +5,7 @@ import play.api.Logger
 object Boards {
 
   var boards: Map[String, Board] = Map()
+//  var rolled = false
 
   // Gewürfelter Wert
   def rolled(gameid: String, playerid: String, currPlayerid: String, _throw: Throw): Option[BoardStatus] = {
@@ -16,16 +17,26 @@ object Boards {
         case Some(board) =>
           getPlayer(gameid, playerid) match {
             case Some(playerLocation) =>
-              Logger.info("Spieler wird bewegt")
-              board.fields.foreach { field =>
-                field.players = field.players.filterNot(p => p.id == playerLocation.id)
-              }
-              Logger.info("Spieler wurde bewegt ")
-              playerLocation.position = (playerLocation.position+amount)%40
-              Logger.info("Spieler position wurde angepasst neue position " +  + playerLocation.position)
-              board.fields(playerLocation.position).players :+= playerLocation //neue position auf feld setzen
-              Logger.info("rolled board - Spieler " + playerLocation.id + " hat erfolgreich gerollt!")
-              Some(BoardStatus(playerLocation, board, Event()))
+              //darf er noch würfeln?
+//              if (!rolled) {
+                Logger.info("Spieler wird bewegt")
+                board.fields.foreach { field =>
+                  field.players = field.players.filterNot(p => p.id == playerLocation.id)
+                }
+                Logger.info("Spieler wurde bewegt ")
+                playerLocation.position = (playerLocation.position + amount) % 40
+                Logger.info("Spieler position wurde angepasst neue position " + +playerLocation.position)
+                board.fields(playerLocation.position).players :+= playerLocation //neue position auf feld setzen
+                Logger.info("rolled board - Spieler " + playerLocation.id + " hat erfolgreich gerollt!")
+//                if (_throw.isPasch) {
+//                  rolled = false
+//                } else {
+//                  rolled = true
+//                }
+                Some(BoardStatus(playerLocation, board, Event()))
+//              } else {
+//                Some(BoardStatus(getPlayer(gameid, playerid).get, board, Event()))
+//              }
             case None =>
               Logger.info("rolled board - Spieler nicht gefunden!")
               Some(BoardStatus(getPlayer(gameid, playerid).get, board, Event()))
@@ -108,7 +119,7 @@ object Boards {
             Logger.info("spieler " + player + " wurde auf board/game " + gameid + " gefunden!")
             playerLocation = Some(player)
           case None =>
-            if(playerLocation == None)
+            if (playerLocation == None)
               playerLocation = None
         }
       }
@@ -160,7 +171,11 @@ case class Place(name: String = "")
 
 case class PlayerLocation(id: String, place: String, var position: Int)
 
-case class Throw(roll1: Roll, roll2: Roll)
+case class Throw(roll1: Roll, roll2: Roll) {
+  def isPasch(): Boolean = {
+    roll1 == roll2
+  }
+}
 
 //@TODO Places definieren
 //40 felder
