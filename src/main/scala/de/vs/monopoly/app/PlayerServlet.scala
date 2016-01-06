@@ -20,7 +20,7 @@ class PlayerServlet extends ScalatraServlet with ScalateSupport with JacksonJson
 
   //gets the details about the player
   get("/") {
-    Player("testPlayer", "TestPlayer", "1", "http://localhost:4567", Place(), 0, false)
+    Player("testPlayer", "TestPlayer", "1", "http://localhost:4567", Place(), 0, "")
   }
 
   //Informs the player, that it is his turn

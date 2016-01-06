@@ -67,7 +67,7 @@ class GameServlet extends ScalatraServlet with ScalateSupport with JacksonJsonSu
 
   //get all players
   get("/:gameid/players") {
-    Games.getPlayersURI(params("gameid")) match {
+    Games.getPlayersURI(request.getLocalAddr(), request.getLocalPort().toString, params("gameid")) match {
       case Some(playersUri) => playersUri
       case None => NotFound()
     }
@@ -119,15 +119,11 @@ class GameServlet extends ScalatraServlet with ScalateSupport with JacksonJsonSu
     //@TODO sieht dirty aus
     HttpSync.delete("http://localhost:4567" + "/games/" + params("gameid") + "/players/" + request.getRemoteAddr, TIMEOUT)
 
-    Games joinGame(params("gameid"), request.getRemoteAddr, params("name"), uri) match {
+    Games joinGame(request.getLocalAddr(), request.getLocalPort().toString, params("gameid"), request.getRemoteAddr, params("name"), uri) match {
       case Some(player) =>
         //put player on board
         var response: WSResponse = null
-        //        if (Global.testMode) {
-        //          response = HttpSync.put(Global.default_url + "/boards/" + params("gameid") + "/players/" + request.getRemoteAddr, TIMEOUT)
-        //        } else {
         response = HttpSync.put(Global.boards_uri + "/boards/" + params("gameid") + "/players/" + request.getRemoteAddr, TIMEOUT)
-        //        }
         if (response.status == 201) {
           //Dem spieler den game channel subscriben
           val subscriber = Subscriber(player.id, Nil, "")
@@ -183,7 +179,7 @@ class GameServlet extends ScalatraServlet with ScalateSupport with JacksonJsonSu
   }
 
   def updatePlayers(gameid: String): Unit = {
-    val players = Players(Games.getGame(gameid).get.players)
+    val players = Players(Games.getPlayers(gameid).get)
     val message = Message("SERVER", "update_players", "EGAL", write(players))
     HttpAsync.post(Global.messages_uri + "/messages/send/" + gameid, write(message))
   }

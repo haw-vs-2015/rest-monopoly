@@ -10,6 +10,9 @@ object Games {
   var games: Map[String, Game] = Map()
   var gamesURI: Map[String, GameURI] = Map()
 
+  var players: Map[String, List[Player]] = Map()
+  var playerReady: Map[String, Boolean] = Map()
+
   //methods
   def id(): String = {
     _id += 1
@@ -20,6 +23,7 @@ object Games {
 
     val game = Game()
     game.uri = "http://" + host + ":" + port + "/games/" + game.gameid
+    game.players = game.uri + "/players"
 
     //Init Components //Generate Components fehlt
     val _game = game.uri
@@ -32,7 +36,7 @@ object Games {
     val _components = Components(_game, dice, board, bank, broker, decks, events)
 
     game.components = _components
-
+    players += (game.gameid -> List())
     games += (game.gameid -> game)
     gamesURI += (game.gameid -> GameURI(game.gameid, game.started, game.uri))
 
@@ -44,7 +48,7 @@ object Games {
   def findPlayer(playerid: String): Option[Player] = {
     var rs: Option[Player] = None
     for (game <- games.values) {
-      game.players.find(p => p.id == playerid) match {
+      players(game.gameid).find(p => p.id == playerid) match {
         case Some(player) => rs = Some(player)
         case None =>
       }
@@ -61,10 +65,10 @@ object Games {
   }
 
   def getPlayer(gameid: String, playerid: String): Option[Player] = {
-    getGame(gameid) match {
-      case Some(game) =>
+    players.get(gameid) match {
+      case Some(_players) =>
         Logger.info("game " + gameid + " found.")
-        game.players.find(x => x.id == playerid)
+        _players.find(x => x.id == playerid)
       case None =>
         Logger.info("game" + gameid + " missing.")
         None
@@ -73,14 +77,14 @@ object Games {
 
   //@TODO event to board remove player?
   def removePlayer(gameid: String, playerid: String) {
-    getGame(gameid) match {
-      case Some(game) =>
-        val old = game.players
-        game.players = game.players.filterNot { x => x.id == playerid }
+    players.get(gameid) match {
+      case Some(_players) =>
+        val old = _players
+        players += (gameid -> _players.filterNot { x => x.id == playerid })
         Logger.info("player " + playerid + " is not in the game anymore.")
         //remove game if has no players
         //@TODO check has changed needed??
-        if (game.players.size < old.size && game.players.isEmpty) {
+        if (_players.size < old.size && _players.isEmpty) {
           removeGame(gameid)
           Logger.info("game empty and removed " + gameid)
         }
@@ -97,13 +101,26 @@ object Games {
 
   //@TODO ?
   //woher weiss der Spieler das er gejoint ist? Maximum festlegen?
-  def joinGame(gameid: String, _id: String, _name: String, _uri: String): Option[Player] = {
-    var player = Player(id = _id, name = _name, gameid = gameid, uri = _uri)
+  def joinGame(host: String, port: String, gameid: String, _id: String, _name: String, _uri: String): Option[Player] = {
+
+    val _uri = "http://" + host + ":" + port + "/games/" + gameid + "/players/" + _id
+    val readyURI = "http://" + host + ":" + port + "/games/" + gameid + "/players/" + _id + "/ready"
+
+    var player = Player(id = _id, name = _name, gameid = gameid, uri = _uri, ready = readyURI)
+
     getGame(gameid) match {
       case Some(game) =>
         if (!game.started) {
-          Logger.info("player " + player.id + " joined Game " + gameid)
-          game.players :+= player
+          Logger.info("player000 " + player.id + " joined Game " + gameid)
+
+          var l = players.get(gameid).get
+          Logger.info("JOINED1: " + players)
+          l :+= player
+
+          Logger.info("JOINED2: " + players)
+          players += (gameid -> l)
+          playerReady += (_id -> false)
+          Logger.info("JOINED3: " + players)
           Some(player)
         } else {
           Logger.info("Error " + gameid + " cant join game, already started")
@@ -117,7 +134,7 @@ object Games {
     getPlayer(gameid, playerid) match {
       case Some(player) =>
         Logger.info("player " + playerid + " is ready")
-        player.ready
+        playerReady.get(player.id).get
       case None => false
     }
   }
@@ -126,7 +143,7 @@ object Games {
   def setPlayerReady(gameid: String, playerid: String) {
 
     getPlayer(gameid, playerid) match {
-      case Some(playerReady) =>
+      case Some(_playerReady) =>
         //Game started
         if (getGame(gameid).get.started) {
           getCurrentPlayer(gameid) match {
@@ -136,12 +153,12 @@ object Games {
                 getGame(gameid) match {
                   case Some(game) =>
                     //@TODO head option einbauen
-                    game.players = game.players.tail :+ game.players.head
-                    player.ready = true
-                    game.players(0).ready = false
+                    players += (gameid -> ((players.get(gameid).get).tail :+ (players.get(gameid).get).head))
+                    playerReady += (player.id -> true)
+                    playerReady += ((players.get(gameid).get)(0).id -> false)
                     //Logger.info("setPlayerReady " + player.id + " is ready now")
                     resetMutex(gameid)
-                    setMutex(gameid, game.players(0).id)
+                    setMutex(gameid, (players.get(gameid).get)(0).id)
                   case None => None
                 }
               }
@@ -150,7 +167,7 @@ object Games {
         } else {
           //Game not started lobby
           Logger.info("setPlayerReady " + playerid + " lobby success")
-          playerReady.ready = true
+          playerReady += (playerid -> true)
         }
       case None => Logger.info("Error " + playerid + " setPlayerReady")
     }
@@ -161,10 +178,10 @@ object Games {
     val players = getPlayers(gameid).getOrElse(Nil)
     Logger.info("try start " + gameid + " game")
     //    players.foreach(p => println(p.ready))
-    if (players.forall(_.ready == true)) {
+    if (playerReady.values.forall(_ == true)) {
       Logger.info("setPlayerReady game started")
       //@TODO Schon fertig?  - hier fehlt was, direktes starten des spiels nicht erlaubt, da ready true erwartet wird
-      players.head.ready = false
+      playerReady += (players.head.id -> false)
       setMutex(gameid, players.head.id)
       getGame(gameid).get.started = true
       getGameURI(gameid).get.started = true
@@ -177,18 +194,15 @@ object Games {
   }
 
   def getPlayers(gameid: String): Option[List[Player]] = {
-    games.get(gameid) match {
-      case Some(game) => Some(game.players)
-      case None => None
-    }
+    players.get(gameid)
   }
 
-  def getPlayersURI(gameid: String): Option[List[PlayerURI]] = {
-    games.get(gameid) match {
-      case Some(game) =>
+  def getPlayersURI(host: String, port: String, gameid: String): Option[List[PlayerURI]] = {
+    players.get(gameid) match {
+      case Some(_players) =>
         var rs = List[PlayerURI]()
-        for (player <- game.players) {
-          val uri = Global.games_uri + "/games/" + game.gameid + "/player/" + player.id
+        for (player <- _players) {
+          val uri = "http://" + host + ":" + port + "/games/" + gameid + "/player/" + player.id
           rs :+= PlayerURI(player.id, player.name, player.gameid, uri)
         }
         Some(rs)
@@ -200,8 +214,8 @@ object Games {
   //Die reihenfolge muss implementiert werden letzter in der Liste wird an
   //stelle eins gesetzt, wenn er dran war.
   def getCurrentPlayer(gameid: String): Option[Player] = {
-    getGame(gameid) match {
-      case Some(game) => game.players.headOption
+    players.get(gameid) match {
+      case Some(_players) => _players.headOption
       case None => None
     }
   }
@@ -253,6 +267,7 @@ object Games {
   def reset(): Unit = {
     games = Map()
     gamesURI = Map()
+    players = Map()
     _id = 0
     Players._id = 0
   }
@@ -279,4 +294,5 @@ case class GameURI(name: String, var started: Boolean, uri: String)
 
 //@TODO
 //get /boards wieso enthält ein Game kein ready und players?
-case class Game(gameid: String = Games.id().toString, var players: List[Player] = List(), var components: Components = Components("", "", "", "", "", "", ""), var started: Boolean = false, var mutex: String = "", var uri: String = "")
+case class Game(gameid: String = Games.id().toString, var players: String = "", var components: Components = Components("", "", "", "", "", "", ""), var started: Boolean = false, var mutex: String = "", var uri: String = "")
+
