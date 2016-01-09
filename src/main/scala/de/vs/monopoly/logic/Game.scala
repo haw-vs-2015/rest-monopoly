@@ -23,11 +23,11 @@ object Games {
 
     val game = Game()
     game.uri = "http://" + host + ":" + port + "/games/" + game.gameid
-    game.players = game.uri + "/players"
+    game.players = game.uri + "/players" + "/"
 
     //Init Components //Generate Components fehlt
     val _game = game.uri
-    val dice = "http://" + host + ":" + port + "/dice"
+    val dice = "http://" + host + ":" + port + "/dice" + "/"
     val board = "http://" + host + ":" + port + "/boards/" + game.gameid
     val bank = ""
     val broker = ""
@@ -103,7 +103,7 @@ object Games {
   //woher weiss der Spieler das er gejoint ist? Maximum festlegen?
   def joinGame(host: String, port: String, gameid: String, _id: String, _name: String, _uri: String): Option[Player] = {
 
-    val _uri = "http://" + host + ":" + port + "/games/" + gameid + "/players/" + _id
+    val _uri = "http://" + host + ":" + port + "/games/" + gameid + "/players/" + _id + "/"
     val readyURI = "http://" + host + ":" + port + "/games/" + gameid + "/players/" + _id + "/ready"
 
     var player = Player(id = _id, name = _name, gameid = gameid, uri = _uri, ready = readyURI)
