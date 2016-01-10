@@ -27,7 +27,7 @@ object Games {
 
     //Init Components //Generate Components fehlt
     val _game = game.uri
-    val dice = "http://" + host + ":" + port + "/dice" + "/"
+    val dice = "http://" + host + ":" + port + "/dice"
     val board = "http://" + host + ":" + port + "/boards/" + game.gameid
     val bank = ""
     val broker = ""
@@ -84,7 +84,8 @@ object Games {
         Logger.info("player " + playerid + " is not in the game anymore.")
         //remove game if has no players
         //@TODO check has changed needed??
-        if (_players.size < old.size && _players.isEmpty) {
+        if (players.get(gameid).get.size < old.size &&
+          players.get(gameid).get.isEmpty) {
           removeGame(gameid)
           Logger.info("game empty and removed " + gameid)
         }
